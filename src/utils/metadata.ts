@@ -156,10 +156,7 @@ export function getComplianceApiVersion(context?: string[]): string {
 export async function signServiceSD(rawServiceSD: any): Promise<any> {
   if (!rawServiceSD) return
   try {
-    const response = await axios.post(
-      `${complianceUri}/v${getComplianceApiVersion()}/api/sign`,
-      rawServiceSD
-    )
+    const response = await axios.post(`${complianceUri}/api/sign`, rawServiceSD)
     const signedServiceSD = {
       selfDescriptionCredential: { ...rawServiceSD },
       ...response.data
@@ -180,7 +177,7 @@ export async function storeRawServiceSD(signedSD: {
 }> {
   if (!signedSD) return { verified: false, storedSdUrl: undefined }
 
-  const baseUrl = `${complianceUri}/v${getComplianceApiVersion()}/api/service-offering/verify/raw?store=true`
+  const baseUrl = `${complianceUri}/api/service-offering/verify/raw?store=true`
   try {
     const response = await axios.post(baseUrl, signedSD)
     if (response?.status === 409) {
@@ -208,15 +205,12 @@ export async function verifyRawServiceSD(rawServiceSD: string): Promise<{
   if (!rawServiceSD) return { verified: false }
 
   const parsedServiceSD = JSON.parse(rawServiceSD)
-  const complianceApiVersion = getComplianceApiVersion(
-    parsedServiceSD?.selfDescriptionCredential?.['@context']
-  )
+  // TODO: put back the compliance API version check
+  // const complianceApiVersion = getComplianceApiVersion(
+  //   parsedServiceSD?.selfDescriptionCredential?.['@context']
+  // )
 
-  const versionedComplianceUri = `${complianceUri}/v${complianceApiVersion}/api`
-
-  // skip participant verification for 22.04 service SDs
-  const verifyParticipantOption = complianceApiVersion !== '2204'
-  const baseUrl = `${versionedComplianceUri}/service-offering/verify/raw?verifyParticipant=${verifyParticipantOption}`
+  const baseUrl = `${complianceUri}/api/service-offering/verify/raw`
 
   try {
     const response = await axios.post(baseUrl, parsedServiceSD)
