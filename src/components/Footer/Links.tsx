@@ -38,7 +38,10 @@ export default function Links(): ReactElement {
           <Button to="/imprint" className={styles.link}>
             Imprint
           </Button>
-          <Button to={privacyPolicySlug} className={styles.link}>
+          <Button
+            href="https://www.minimal-gaia-x.eu/privacy/en"
+            className={styles.link}
+          >
             Privacy
           </Button>
           {appConfig.privacyPreferenceCenter === 'true' && (
