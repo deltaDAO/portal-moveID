@@ -49,6 +49,8 @@
     "is-ipfs": "^8.0.1",
     "is-url-superb": "^6.1.0",
     "js-cookie": "^3.0.5",
+    "jszip": "^3.10.1",
+    "jszip-utils": "^0.1.0",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "match-sorter": "^6.3.1",
