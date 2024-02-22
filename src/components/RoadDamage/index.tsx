@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import { ReactElement, useEffect, useState } from 'react'
-import { RoadDamage, RoadDamageResult } from './_types'
+import { RoadDamage, RoadDamageImage, RoadDamageResult } from './_types'
 import Button from '../@shared/atoms/Button'
 import JSZip from 'jszip'
 import JSZipUtils from 'jszip-utils'
@@ -39,6 +39,9 @@ export default function RoadDamageMap(): ReactElement {
   const [roadDamageResults, setRoadDamageResults] =
     useState<RoadDamageResult[]>()
 
+  const [imageData, setImageData] = useState<string[]>()
+  const [damageImages, setDamageImages] = useState<RoadDamageImage[]>()
+
   useEffect(() => {
     if (!roadDamageResults) return
 
@@ -49,6 +52,16 @@ export default function RoadDamageMap(): ReactElement {
     setMapData(newMapData)
   }, [roadDamageResults])
 
+  useEffect(() => {
+    if (!roadDamageResults) return
+
+    const newMapData = roadDamageResults
+      .map((result) => result.roadDamages)
+      .reduce((previous, current) => previous.concat(current))
+
+    setMapData(newMapData)
+  }, [imageData])
+
   const loadZip = async () => {
     const resultFolderName = 'result'
     const resultMetadataFile = 'metadata.json'
@@ -58,7 +71,6 @@ export default function RoadDamageMap(): ReactElement {
     const path =
       'https://raw.githubusercontent.com/deltaDAO/files/main/sample-result.zip'
     const data = await JSZipUtils.getBinaryContent(path)
-    console.log(data)
 
     const zip = await JSZip.loadAsync(data)
 
@@ -69,12 +81,41 @@ export default function RoadDamageMap(): ReactElement {
     const detectionsJSON = JSON.parse(detectionsString)
     console.dir(detectionsJSON, { depth: null })
     setRoadDamageResults(detectionsJSON)
+
+    const imageFilePaths = Object.keys(
+      zip.folder(resultImagesFolder).files
+    ).filter((path) => path.match('/.*\\.jp[e]?g')) // make sure to only use jpg or jpeg files
+
+    const resultImages: RoadDamageImage[] = []
+    for (const path of imageFilePaths) {
+      const image: RoadDamageImage = {
+        path,
+        name: path.split('/').pop(), // path is 'result/images/file-name.jpg'
+        data: await zip.file(path).async('base64'),
+        type: path.split('.').pop() // try getting filetype from image path
+      }
+      resultImages.push(image)
+    }
+
+    console.log({ resultImages })
+    setDamageImages(resultImages)
   }
 
   return (
     <div>
       <Button onClick={loadZip}>Load ZIP</Button>
       <MapWithNoSSR data={mapData} />
+      {damageImages && (
+        <div>
+          {damageImages.map((image, i) => (
+            <div key={`${image.name}-${i}`}>
+              <img
+                src={`data:image/${image.type || 'jpg'};base64,${image.data}`}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

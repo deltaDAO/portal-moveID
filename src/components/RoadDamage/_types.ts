@@ -26,3 +26,10 @@ export interface GPSCoordinate {
 }
 
 export type RoadDamageType = string
+
+export interface RoadDamageImage {
+  name: string
+  path: string
+  data: string
+  type: string
+}
