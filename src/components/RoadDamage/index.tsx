@@ -1,119 +1,204 @@
+import { LoggerInstance, ProviderInstance } from '@oceanprotocol/lib'
 import dynamic from 'next/dynamic'
-import { ReactElement, useEffect, useState } from 'react'
-import { RoadDamage, RoadDamageImage, RoadDamageResult } from './_types'
+import { ReactElement, useCallback, useEffect, useState } from 'react'
+import { useAccount, useSigner } from 'wagmi'
+import { useAsset } from '../../@context/Asset'
+import { useAutomation } from '../../@context/Automation/AutomationProvider'
+import { useUserPreferences } from '../../@context/UserPreferences'
+import { useCancelToken } from '../../@hooks/useCancelToken'
+import { getAsset } from '../../@utils/aquarius'
+import { getComputeJobs } from '../../@utils/compute'
 import Button from '../@shared/atoms/Button'
-import JSZip from 'jszip'
-import JSZipUtils from 'jszip-utils'
-
-const mapDataMock: RoadDamage[] = [
-  {
-    type: 'crack',
-    damageClass: 'D10',
-    lastObservation: '2001-10-26T21:32:52', // timestamp of image taken
-    heading: 'string',
-    gpsCoordinate: {
-      lat: 12.1234,
-      lng: 12.1234
-    },
-    confidence: 0.23
-  },
-  {
-    type: 'pothole',
-    damageClass: 'D10',
-    lastObservation: '2001-10-26T21:32:52', // timestamp of image taken
-    heading: 'string',
-    gpsCoordinate: {
-      lat: 12.5678,
-      lng: 12.5678
-    },
-    confidence: 0.92
-  }
-]
+import ComputeJobs from '../Profile/History/ComputeJobs'
+import {
+  ROAD_DAMAGE_RESULT_FILE_NAME,
+  ROAD_DAMAGE_USECASE_NAME
+} from './_constants'
+import { RoadDamage, RoadDamageUseCaseData } from './_types'
+import {
+  getResultBinaryData,
+  transformBinaryToRoadDamageResult
+} from './_utils'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
     ssr: false
   })
 
-  const [mapData, setMapData] = useState<RoadDamage[]>(mapDataMock)
-  const [roadDamageResults, setRoadDamageResults] =
-    useState<RoadDamageResult[]>()
+  const { address: accountId } = useAccount()
+  const { data: signer } = useSigner()
+  const { autoWallet } = useAutomation()
 
-  const [imageData, setImageData] = useState<string[]>()
-  const [damageImages, setDamageImages] = useState<RoadDamageImage[]>()
+  const { asset: roadDamageAlgoAsset } = useAsset()
+  const [jobs, setJobs] = useState<ComputeJobMetaData[]>([])
+  const [refetchJobs, setRefetchJobs] = useState(false)
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false)
+  const newCancelToken = useCancelToken()
+
+  const { setUseCaseData, getUseCaseData } = useUserPreferences()
+  const [roadDamageData, setRoadDamageData] = useState<RoadDamageUseCaseData[]>(
+    []
+  )
+
+  const [mapData, setMapData] = useState<RoadDamage[]>([])
 
   useEffect(() => {
-    if (!roadDamageResults) return
-
-    const newMapData = roadDamageResults
-      .map((result) => result.roadDamages)
-      .reduce((previous, current) => previous.concat(current))
-
-    setMapData(newMapData)
-  }, [roadDamageResults])
+    const newUseCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
+      ROAD_DAMAGE_USECASE_NAME
+    )
+    console.log({ newUseCaseData })
+    if (!newUseCaseData) return
+    setRoadDamageData(newUseCaseData)
+  }, [getUseCaseData])
 
   useEffect(() => {
-    if (!roadDamageResults) return
+    if (!roadDamageData || roadDamageData.length < 1) return
 
-    const newMapData = roadDamageResults
-      .map((result) => result.roadDamages)
-      .reduce((previous, current) => previous.concat(current))
+    console.log('Road Damage Data Updated:')
+    console.dir(roadDamageData, { depth: null })
 
-    setMapData(newMapData)
-  }, [imageData])
+    const detections = roadDamageData
+      .map((data) => data.result.detections)
+      .reduce((previous, current) => previous.concat(current), [])
 
-  const loadZip = async () => {
-    const resultFolderName = 'result'
-    const resultMetadataFile = 'metadata.json'
-    const resultDetectionsFile = 'result.json'
-    const resultImagesFolder = 'images'
+    console.log(`new detections:`, detections)
 
-    const path =
-      'https://raw.githubusercontent.com/deltaDAO/files/main/sample-result.zip'
-    const data = await JSZipUtils.getBinaryContent(path)
+    setMapData(detections)
+  }, [roadDamageData])
 
-    const zip = await JSZip.loadAsync(data)
-
-    const detectionsString = await zip
-      .file(`${resultFolderName}/${resultDetectionsFile}`)
-      .async('string')
-
-    const detectionsJSON = JSON.parse(detectionsString)
-    console.dir(detectionsJSON, { depth: null })
-    setRoadDamageResults(detectionsJSON)
-
-    const imageFilePaths = Object.keys(
-      zip.folder(resultImagesFolder).files
-    ).filter((path) => path.match('/.*\\.jp[e]?g')) // make sure to only use jpg or jpeg files
-
-    const resultImages: RoadDamageImage[] = []
-    for (const path of imageFilePaths) {
-      const image: RoadDamageImage = {
-        path,
-        name: path.split('/').pop(), // path is 'result/images/file-name.jpg'
-        data: await zip.file(path).async('base64'),
-        type: path.split('.').pop() // try getting filetype from image path
+  const fetchJobs = useCallback(
+    async (type: string) => {
+      if (!accountId) {
+        return
       }
-      resultImages.push(image)
+      console.log({ roadDamageAlgoAsset, accountId })
+      try {
+        type === 'init' && setIsLoadingJobs(true)
+        const computeJobs = await getComputeJobs(
+          [roadDamageAlgoAsset?.chainId],
+          accountId,
+          null,
+          newCancelToken()
+        )
+        if (autoWallet) {
+          const autoComputeJobs = await getComputeJobs(
+            [roadDamageAlgoAsset?.chainId],
+            autoWallet?.address,
+            null,
+            newCancelToken()
+          )
+          autoComputeJobs.computeJobs.forEach((job) => {
+            computeJobs.computeJobs.push(job)
+          })
+        }
+
+        setJobs(
+          computeJobs.computeJobs.filter(
+            (job) =>
+              job.algoDID === roadDamageAlgoAsset?.id &&
+              job.status === 70 &&
+              job.results.filter(
+                (result) => result.filename === ROAD_DAMAGE_RESULT_FILE_NAME
+              ).length > 0
+          )
+        )
+        setIsLoadingJobs(!computeJobs.isLoaded)
+      } catch (error) {
+        LoggerInstance.error(error.message)
+        setIsLoadingJobs(false)
+      }
+    },
+    [accountId, roadDamageAlgoAsset, autoWallet, newCancelToken]
+  )
+
+  useEffect(() => {
+    fetchJobs('init')
+
+    // init periodic refresh for jobs
+    const refreshInterval = setInterval(() => fetchJobs('repeat'), 20000)
+
+    return () => {
+      clearInterval(refreshInterval)
+    }
+  }, [refetchJobs])
+
+  const addComputeResultToLocalStorage = async (job: ComputeJobMetaData) => {
+    const datasetDDO = await getAsset(job.inputDID[0], newCancelToken())
+
+    const signerToUse =
+      job.owner.toLowerCase() === autoWallet?.address.toLowerCase()
+        ? autoWallet
+        : signer
+
+    const jobResult = await ProviderInstance.getComputeResultUrl(
+      datasetDDO.services[0].serviceEndpoint,
+      signerToUse,
+      job.jobId,
+      job.results.findIndex(
+        (result) => result.filename === ROAD_DAMAGE_RESULT_FILE_NAME
+      )
+    )
+
+    const binary = await getResultBinaryData(jobResult)
+    const resultData = await transformBinaryToRoadDamageResult(binary)
+
+    if (!resultData?.detections) return
+
+    const useCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
+      ROAD_DAMAGE_USECASE_NAME
+    )
+
+    const filteredUseCaseData: RoadDamageUseCaseData[] =
+      useCaseData?.filter((data) => data.job.jobId !== job.jobId) || []
+
+    const newuseCaseData: RoadDamageUseCaseData = {
+      job,
+      result: resultData
     }
 
-    console.log({ resultImages })
-    setDamageImages(resultImages)
+    setUseCaseData<RoadDamageUseCaseData[]>(ROAD_DAMAGE_USECASE_NAME, [
+      ...filteredUseCaseData,
+      newuseCaseData
+    ])
+  }
+
+  const clearData = () => {
+    setUseCaseData(ROAD_DAMAGE_USECASE_NAME, [])
   }
 
   return (
     <div>
-      <Button onClick={loadZip}>Load ZIP</Button>
-      <MapWithNoSSR data={mapData} />
-      {damageImages && (
+      <ComputeJobs
+        minimal
+        jobs={jobs}
+        isLoading={isLoadingJobs}
+        refetchJobs={() => setRefetchJobs(!refetchJobs)}
+        actions={[
+          {
+            label: 'Add',
+            onClick: (job) => {
+              console.log('ADD JOB', job.jobId)
+              addComputeResultToLocalStorage(job)
+            }
+          }
+        ]}
+        hideDetails
+      />
+
+      <Button onClick={clearData}>Clear Data</Button>
+      {mapData && mapData.length > 0 && <MapWithNoSSR data={mapData} />}
+      {roadDamageData && roadDamageData.length > 0 && (
         <div>
-          {damageImages.map((image, i) => (
-            <div key={`${image.name}-${i}`}>
-              <img
-                src={`data:image/${image.type || 'jpg'};base64,${image.data}`}
-              />
-            </div>
-          ))}
+          {roadDamageData.map((data) => {
+            return data.result?.images?.map((image, i) => (
+              <div key={`${image.name}-${i}`}>
+                <img
+                  src={`data:image/${image.type || 'jpg'};base64,${image.data}`}
+                  alt={image.name}
+                />
+              </div>
+            ))
+          })}
         </div>
       )}
     </div>

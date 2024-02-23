@@ -1,4 +1,4 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import Time from '@shared/atoms/Time'
 import Table, { TableOceanColumn } from '@shared/atoms/Table'
 import Button from '@shared/atoms/Button'
@@ -9,6 +9,7 @@ import NetworkName from '@shared/NetworkName'
 import styles from './index.module.css'
 import AssetListTitle from '@shared/AssetListTitle'
 import { useAccount } from 'wagmi'
+import InputElement from '../../../@shared/FormInput/InputElement'
 
 export function Status({ children }: { children: string }): ReactElement {
   return <div className={styles.status}>{children}</div>
@@ -41,27 +42,58 @@ const columns: TableOceanColumn<ComputeJobMetaData>[] = [
   {
     name: 'Status',
     selector: (row) => <Status>{row.statusText}</Status>
-  },
-  {
-    name: 'Actions',
-    selector: (row) => <Details job={row} />
   }
 ]
+
+const defaultActionsColumn: TableOceanColumn<ComputeJobMetaData> = {
+  name: 'Actions',
+  selector: (row) => <Details job={row} />
+}
 
 export default function ComputeJobs({
   minimal,
   jobs,
   isLoading,
-  refetchJobs
+  refetchJobs,
+  actions,
+  hideDetails
 }: {
   minimal?: boolean
   jobs?: ComputeJobMetaData[]
   isLoading?: boolean
   refetchJobs?: any
+  actions?: {
+    label: string
+    onClick: (job: ComputeJobMetaData) => void
+  }[]
+  hideDetails?: boolean
 }): ReactElement {
   const { address: accountId } = useAccount()
   const { chainIds } = useUserPreferences()
-  const [columnsMinimal] = useState([columns[5], columns[6], columns[4]])
+
+  const [actionsColumn, setActionsColumn] =
+    useState<TableOceanColumn<ComputeJobMetaData>>(defaultActionsColumn)
+
+  useEffect(() => {
+    setActionsColumn({
+      name: defaultActionsColumn.name,
+      selector: (row) => (
+        <div>
+          {actions.map((action, i) => (
+            <Button
+              key={`compute-job-action-${action.label}-${i}`}
+              size="small"
+              style="text"
+              onClick={() => action.onClick(row)}
+            >
+              {action.label}
+            </Button>
+          ))}
+          {!hideDetails && <Details job={row} />}
+        </div>
+      )
+    })
+  }, [actions])
 
   return accountId ? (
     <>
@@ -79,7 +111,11 @@ export default function ComputeJobs({
         </Button>
       )}
       <Table
-        columns={minimal ? columnsMinimal : columns}
+        columns={
+          minimal
+            ? [columns[5], actionsColumn, columns[4]]
+            : [...columns, actionsColumn]
+        }
         data={jobs}
         isLoading={isLoading}
         defaultSortFieldId="row.dateCreated"

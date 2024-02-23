@@ -6,11 +6,6 @@ export interface RoadDamageMetadata {
   usedDataOntology: string
 }
 
-export interface RoadDamageResult {
-  resultName: string
-  roadDamages: RoadDamage[]
-}
-
 export interface RoadDamage {
   type: RoadDamageType
   damageClass: string
@@ -32,4 +27,12 @@ export interface RoadDamageImage {
   path: string
   data: string
   type: string
+}
+
+export interface RoadDamageUseCaseData {
+  job: ComputeJobMetaData
+  result: {
+    detections: RoadDamage[]
+    images: RoadDamageImage[]
+  }
 }

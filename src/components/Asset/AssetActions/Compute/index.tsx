@@ -64,6 +64,8 @@ import { parseConsumerParameterValues } from '../ConsumerParameters'
 import { useAutomation } from '../../../../@context/Automation/AutomationProvider'
 import { Signer } from 'ethers'
 import { useAccount } from 'wagmi'
+import { ROAD_DAMAGE_ALGO_DID } from '../../../RoadDamage/_constants'
+import Button from '../../../@shared/atoms/Button'
 
 const refreshInterval = 10000 // 10 sec.
 
@@ -631,6 +633,14 @@ export default function Compute({
           accountId={accountId}
           isAccountIdWhitelisted={isAccountIdWhitelisted}
         />
+      )}
+      {/* TODO: remove hardcoded (e.g. move to asset.useCase or similar) */}
+      {accountId && asset?.id === ROAD_DAMAGE_ALGO_DID && (
+        <div className={styles.useCaseLink}>
+          <Button to="/roaddamage" style="text">
+            Road Damage Visualization
+          </Button>
+        </div>
       )}
       {accountId && asset?.accessDetails?.datatoken && (
         <ComputeHistory

@@ -29,32 +29,37 @@ function Map({ data }: MapProps) {
   }
 
   useEffect(() => {
-    const mapMarkers = data.map((d, index) => (
-      <CircleMarker
-        key={`${d.gpsCoordinate.lat}-${d.gpsCoordinate.lng}-${index}`}
-        center={d.gpsCoordinate}
-        pathOptions={{ color: getConfidenceColor(d.confidence) }}
-      >
-        <Tooltip>
-          <strong>
-            Road Damage{' '}
-            <span style={{ color: getConfidenceColor(d.confidence) }}>
-              ({Math.round(d.confidence * 100)}%)
+    const mapMarkers = data.map((d, index) => {
+      d.gpsCoordinate.lng = Number(d.gpsCoordinate.lng)
+      d.gpsCoordinate.lat = Number(d.gpsCoordinate.lat)
+
+      return (
+        <CircleMarker
+          key={`${d.gpsCoordinate.lat}-${d.gpsCoordinate.lng}-${index}`}
+          center={d.gpsCoordinate}
+          pathOptions={{ color: getConfidenceColor(d.confidence) }}
+        >
+          <Tooltip>
+            <strong>
+              Road Damage{' '}
+              <span style={{ color: getConfidenceColor(d.confidence) }}>
+                ({Math.round(d.confidence * 100)}%)
+              </span>
+            </strong>
+            <br />
+            <span>Type: {d.type}</span>
+            <br />
+            <span>
+              Coordinates: [
+              {Object.values(d.gpsCoordinate)
+                .map((el) => Number(el | 0).toFixed(4))
+                .toString()}
+              ]
             </span>
-          </strong>
-          <br />
-          <span>Type: {d.type}</span>
-          <br />
-          <span>
-            Coordinates: [
-            {Object.values(d.gpsCoordinate)
-              .map((el) => el.toFixed(4))
-              .toString()}
-            ]
-          </span>
-        </Tooltip>
-      </CircleMarker>
-    ))
+          </Tooltip>
+        </CircleMarker>
+      )
+    })
 
     setMarkers(mapMarkers)
 
@@ -82,7 +87,7 @@ function Map({ data }: MapProps) {
   return center ? (
     <MapContainer
       center={center}
-      zoom={13}
+      zoom={1}
       style={{ width: 800, height: 400, zIndex: 1 }}
       scrollWheelZoom={false}
     >
