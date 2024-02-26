@@ -75,6 +75,7 @@ export default function ComputeJobs({
     useState<TableOceanColumn<ComputeJobMetaData>>(defaultActionsColumn)
 
   useEffect(() => {
+    if (!actions || actions.length < 1) return
     setActionsColumn({
       name: defaultActionsColumn.name,
       selector: (row) => (
