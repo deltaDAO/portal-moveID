@@ -1,10 +1,15 @@
 import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
-import { RoadDamageImage, RoadDamageUseCaseData } from './_types'
-import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
+import {
+  RoadDamageImage,
+  RoadDamageResult,
+  RoadDamageUseCaseData
+} from './_types'
+import { CONFIDENCE_COLOR_MAP, ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import { LoggerInstance } from '@oceanprotocol/lib'
 
 export async function getResultBinaryData(url: string) {
+  // TODO: replace
   const resultData = await JSZipUtils.getBinaryContent(
     'https://raw.githubusercontent.com/deltaDAO/files/main/result.zip'
   )
@@ -32,7 +37,7 @@ export async function transformBinaryToRoadDamageResult(
       .file(`${folderName}/${detectionsFileName}`)
       .async('string')
 
-    const detectionsJSON = JSON.parse(detectionsString)
+    const detectionsJSON: RoadDamageResult[] = JSON.parse(detectionsString)
     console.dir(detectionsJSON, { depth: null })
 
     const imageFilePaths = Object.keys(
@@ -65,4 +70,12 @@ export async function transformBinaryToRoadDamageResult(
       e
     )
   }
+}
+
+export function getConfidenceColor(confidence: number) {
+  // make sure array is sorted correctly for next find call
+  const sorted = CONFIDENCE_COLOR_MAP.sort((a, b) => b.threshold - a.threshold)
+
+  // return the first color found in sorted array where confidence > threshold
+  return sorted.find((entry) => confidence > entry.threshold).color
 }

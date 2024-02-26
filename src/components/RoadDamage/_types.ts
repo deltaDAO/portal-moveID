@@ -15,6 +15,15 @@ export interface RoadDamage {
   confidence: number
 }
 
+export interface RoadDamageResult {
+  resultName: string
+  roadDamages: RoadDamage[]
+}
+
+export interface RoadDamageMapData extends RoadDamage {
+  image: RoadDamageImage
+}
+
 export interface GPSCoordinate {
   lat: number
   lng: number
@@ -32,7 +41,7 @@ export interface RoadDamageImage {
 export interface RoadDamageUseCaseData {
   job: ComputeJobMetaData
   result: {
-    detections: RoadDamage[]
+    detections: RoadDamageResult[]
     images: RoadDamageImage[]
   }
 }

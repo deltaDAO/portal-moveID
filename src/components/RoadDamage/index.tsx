@@ -14,11 +14,13 @@ import {
   ROAD_DAMAGE_RESULT_FILE_NAME,
   ROAD_DAMAGE_USECASE_NAME
 } from './_constants'
-import { RoadDamage, RoadDamageUseCaseData } from './_types'
+import { RoadDamageMapData, RoadDamageUseCaseData } from './_types'
 import {
   getResultBinaryData,
   transformBinaryToRoadDamageResult
 } from './_utils'
+import styles from './index.module.css'
+import Accordion from '../@shared/Accordion'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
@@ -40,7 +42,7 @@ export default function RoadDamageMap(): ReactElement {
     []
   )
 
-  const [mapData, setMapData] = useState<RoadDamage[]>([])
+  const [mapData, setMapData] = useState<RoadDamageMapData[]>([])
 
   useEffect(() => {
     const newUseCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
@@ -52,18 +54,31 @@ export default function RoadDamageMap(): ReactElement {
   }, [getUseCaseData])
 
   useEffect(() => {
-    if (!roadDamageData || roadDamageData.length < 1) return
+    if (!roadDamageData || roadDamageData.length < 1) {
+      setMapData([])
+    }
 
     console.log('Road Damage Data Updated:')
     console.dir(roadDamageData, { depth: null })
 
-    const detections = roadDamageData
-      .map((data) => data.result.detections)
+    const results = roadDamageData.map((data) => data.result)
+
+    const newMapData: RoadDamageMapData[] = results
+      .map((result) =>
+        result.detections
+          .map((detection) =>
+            detection.roadDamages.map((damage) => ({
+              ...damage,
+              image: result.images.find((image) =>
+                image.path.includes(detection.resultName)
+              )
+            }))
+          )
+          .reduce((previous, current) => previous.concat(current), [])
+      )
       .reduce((previous, current) => previous.concat(current), [])
 
-    console.log(`new detections:`, detections)
-
-    setMapData(detections)
+    setMapData(newMapData)
   }, [roadDamageData])
 
   const fetchJobs = useCallback(
@@ -113,13 +128,6 @@ export default function RoadDamageMap(): ReactElement {
 
   useEffect(() => {
     fetchJobs('init')
-
-    // init periodic refresh for jobs
-    const refreshInterval = setInterval(() => fetchJobs('repeat'), 20000)
-
-    return () => {
-      clearInterval(refreshInterval)
-    }
   }, [refetchJobs])
 
   const addComputeResultToLocalStorage = async (job: ComputeJobMetaData) => {
@@ -163,44 +171,40 @@ export default function RoadDamageMap(): ReactElement {
   }
 
   const clearData = () => {
-    setUseCaseData(ROAD_DAMAGE_USECASE_NAME, [])
+    if (mapData.length < 1) return
+    if (confirm('All data will be removed from your cache. Proceed?'))
+      setUseCaseData(ROAD_DAMAGE_USECASE_NAME, [])
   }
 
   return (
     <div>
-      <ComputeJobs
-        minimal
-        jobs={jobs}
-        isLoading={isLoadingJobs}
-        refetchJobs={() => setRefetchJobs(!refetchJobs)}
-        actions={[
-          {
-            label: 'Add',
-            onClick: (job) => {
-              console.log('ADD JOB', job.jobId)
-              addComputeResultToLocalStorage(job)
-            }
-          }
-        ]}
-        hideDetails
-      />
+      <div className={styles.accordionWrapper}>
+        <Accordion title="Compute Jobs" defaultExpanded>
+          <ComputeJobs
+            jobs={jobs}
+            isLoading={isLoadingJobs}
+            refetchJobs={() => setRefetchJobs(!refetchJobs)}
+            actions={[
+              {
+                label: 'Add',
+                onClick: (job) => {
+                  console.log('ADD JOB', job.jobId)
+                  addComputeResultToLocalStorage(job)
+                }
+              }
+            ]}
+            hideDetails
+          />
 
-      <Button onClick={clearData}>Clear Data</Button>
+          <div className={styles.actions}>
+            <Button onClick={() => clearData()}>Clear Data</Button>
+            <Button onClick={() => fetchJobs('refresh')} style="text">
+              Refetch Compute Jobs
+            </Button>
+          </div>
+        </Accordion>
+      </div>
       {mapData && mapData.length > 0 && <MapWithNoSSR data={mapData} />}
-      {roadDamageData && roadDamageData.length > 0 && (
-        <div>
-          {roadDamageData.map((data) => {
-            return data.result?.images?.map((image, i) => (
-              <div key={`${image.name}-${i}`}>
-                <img
-                  src={`data:image/${image.type || 'jpg'};base64,${image.data}`}
-                  alt={image.name}
-                />
-              </div>
-            ))
-          })}
-        </div>
-      )}
     </div>
   )
 }

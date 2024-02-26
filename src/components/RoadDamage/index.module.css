@@ -1,0 +1,12 @@
+.actions {
+  margin: var(--spacer) 0;
+  display: flex;
+  gap: var(--spacer);
+  justify-content: space-between;
+}
+
+.accordionWrapper {
+  margin: calc(var(--spacer) * 2) 0;
+  padding-bottom: calc(var(--spacer) / 2);
+  border-bottom: 1px solid var(--border-color);
+}

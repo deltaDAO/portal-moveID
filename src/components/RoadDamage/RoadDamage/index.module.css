@@ -1,0 +1,23 @@
+.info {
+  font-size: var(--font-size-large);
+  padding: var(--spacer);
+}
+
+.info h2 {
+  text-transform: capitalize;
+}
+
+.wrapper {
+  width: 900px;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacer);
+  margin: var(--spacer) auto;
+  border: 1px solid var(--border-color);
+}
+
+.image {
+  max-width: 50%;
+  width: 500px;
+  height: auto;
+}

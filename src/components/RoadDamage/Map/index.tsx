@@ -3,30 +3,22 @@ import 'leaflet-defaulticon-compatibility'
 import { LatLngTuple } from 'leaflet'
 import { useEffect, useState } from 'react'
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
-import { RoadDamage } from '../_types'
+import { RoadDamage, RoadDamageImage, RoadDamageMapData } from '../_types'
+import styles from './index.module.css'
 
-import 'leaflet/dist/leaflet.css'
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'
+import 'leaflet/dist/leaflet.css'
+import RoadDamageDetails from '../RoadDamage'
+import { getConfidenceColor } from '../_utils'
 
 export interface MapProps {
-  data: RoadDamage[]
+  data: (RoadDamage & { image: RoadDamageImage })[]
 }
 
 function Map({ data }: MapProps) {
   const [markers, setMarkers] = useState<JSX.Element[]>()
   const [center, setCenter] = useState<LatLngTuple>()
-
-  const getConfidenceColor = (confidence: number) => {
-    return confidence < 0.33
-      ? 'grey'
-      : confidence < 0.5
-      ? 'firebrick'
-      : confidence < 0.66
-      ? 'orange'
-      : confidence < 0.85
-      ? 'green'
-      : 'blue'
-  }
+  const [currentDamage, setCurrentDamage] = useState<RoadDamageMapData>()
 
   useEffect(() => {
     const mapMarkers = data.map((d, index) => {
@@ -38,6 +30,9 @@ function Map({ data }: MapProps) {
           key={`${d.gpsCoordinate.lat}-${d.gpsCoordinate.lng}-${index}`}
           center={d.gpsCoordinate}
           pathOptions={{ color: getConfidenceColor(d.confidence) }}
+          eventHandlers={{
+            click: () => setCurrentDamage(d)
+          }}
         >
           <Tooltip>
             <strong>
@@ -84,18 +79,27 @@ function Map({ data }: MapProps) {
     console.log('update map', { coords, centroid })
   }, [data])
 
-  return center ? (
-    <MapContainer
-      center={center}
-      zoom={1}
-      style={{ width: 800, height: 400, zIndex: 1 }}
-      scrollWheelZoom={false}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      {markers}
-    </MapContainer>
-  ) : (
-    <p>Calculating map...</p>
+  return (
+    <>
+      <div className={styles.mapContainer}>
+        {center ? (
+          <div className={styles.mapContainer}>
+            <MapContainer
+              center={center}
+              zoom={1}
+              style={{ width: 900, height: 600, zIndex: 1 }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {markers}
+            </MapContainer>
+          </div>
+        ) : (
+          <p>Calculating map...</p>
+        )}
+      </div>
+      {currentDamage && <RoadDamageDetails damage={currentDamage} />}
+    </>
   )
 }
 

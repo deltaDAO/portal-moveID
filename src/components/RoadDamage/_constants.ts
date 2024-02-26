@@ -14,6 +14,29 @@ export const ROAD_DAMAGE_RESULT_ZIP = {
   imagesFolderName: 'images'
 }
 
+export const CONFIDENCE_COLOR_MAP = [
+  {
+    threshold: 0.85,
+    color: 'blue'
+  },
+  {
+    threshold: 0.66,
+    color: 'green'
+  },
+  {
+    threshold: 0.5,
+    color: 'orange'
+  },
+  {
+    threshold: 0.33,
+    color: 'firebrick'
+  },
+  {
+    threshold: 0,
+    color: 'grey'
+  }
+]
+
 const mapDataMock: RoadDamage[] = [
   {
     type: 'crack',
