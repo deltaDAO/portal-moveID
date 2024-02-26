@@ -204,7 +204,15 @@ export default function RoadDamageMap(): ReactElement {
           </div>
         </Accordion>
       </div>
-      {mapData && mapData.length > 0 && <MapWithNoSSR data={mapData} />}
+      {mapData && mapData.length > 0 && (
+        <div>
+          <span className={styles.info}>
+            Map info calculated from {roadDamageData.length} compute job result
+            {roadDamageData.length > 1 && 's'}.
+          </span>
+          <MapWithNoSSR data={mapData} />
+        </div>
+      )}
     </div>
   )
 }

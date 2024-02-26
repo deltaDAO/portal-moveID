@@ -6,7 +6,14 @@
 }
 
 .accordionWrapper {
-  margin: calc(var(--spacer) * 2) 0;
+  margin: calc(var(--spacer) * 2) 0 var(--spacer);
   padding-bottom: calc(var(--spacer) / 2);
   border-bottom: 1px solid var(--border-color);
+}
+
+.info {
+  display: block;
+  margin: calc(var(--spacer) / 3) auto;
+  text-align: center;
+  font-style: italic;
 }
