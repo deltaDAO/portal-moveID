@@ -1,13 +1,9 @@
 import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
-import {
-  RoadDamageImage,
-  RoadDamageMapData,
-  RoadDamageResult,
-  RoadDamageUseCaseData
-} from './_types'
+import { RoadDamageImage, RoadDamageMapData, RoadDamageResult } from './_types'
 import { CONFIDENCE_COLOR_MAP, ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
 
 export async function getResultBinaryData(url: string) {
   // TODO: replace
@@ -15,8 +11,6 @@ export async function getResultBinaryData(url: string) {
     'https://raw.githubusercontent.com/deltaDAO/files/main/result.zip'
   )
   // const resultData = await JSZipUtils.getBinaryContent(jobResult)
-
-  console.log({ resultData })
 
   return resultData
 }
@@ -36,7 +30,7 @@ export async function transformBinaryToRoadDamageResult(
   try {
     zip = await JSZip.loadAsync(binary)
 
-    console.log({ zip })
+    LoggerInstance.log(`[RoadDamage]: unzipped result data:`, { zip })
 
     detectionsJSON = await zip.file(detectionsFileName).async('string')
   } catch (error) {

@@ -43,7 +43,7 @@ const mapDataMock: RoadDamage[] = [
     damageClass: 'D10',
     lastObservation: '2001-10-26T21:32:52', // timestamp of image taken
     heading: 'string',
-    gpsCoordinate: {
+    gpsCoordinates: {
       lat: 12.1234,
       lng: 12.1234
     },
@@ -54,7 +54,7 @@ const mapDataMock: RoadDamage[] = [
     damageClass: 'D10',
     lastObservation: '2001-10-26T21:32:52', // timestamp of image taken
     heading: 'string',
-    gpsCoordinate: {
+    gpsCoordinates: {
       lat: 12.5678,
       lng: 12.5678
     },

@@ -4,23 +4,22 @@ import { ReactElement, useCallback, useEffect, useState } from 'react'
 import { useAccount, useSigner } from 'wagmi'
 import { useAsset } from '../../@context/Asset'
 import { useAutomation } from '../../@context/Automation/AutomationProvider'
-import { useUserPreferences } from '../../@context/UserPreferences'
+import { useUseCases } from '../../@context/UseCases'
+import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
 import { useCancelToken } from '../../@hooks/useCancelToken'
 import { getAsset } from '../../@utils/aquarius'
 import { getComputeJobs } from '../../@utils/compute'
+import Accordion from '../@shared/Accordion'
 import Button from '../@shared/atoms/Button'
 import ComputeJobs from '../Profile/History/ComputeJobs'
-import {
-  ROAD_DAMAGE_RESULT_FILE_NAME,
-  ROAD_DAMAGE_USECASE_NAME
-} from './_constants'
-import { RoadDamageMapData, RoadDamageUseCaseData } from './_types'
+import { ROAD_DAMAGE_RESULT_FILE_NAME } from './_constants'
+import { RoadDamageMapData } from './_types'
 import {
   getResultBinaryData,
   transformBinaryToRoadDamageResult
 } from './_utils'
 import styles from './index.module.css'
-import Accordion from '../@shared/Accordion'
+import { toast } from 'react-toastify'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
@@ -37,7 +36,8 @@ export default function RoadDamageMap(): ReactElement {
   const [isLoadingJobs, setIsLoadingJobs] = useState(false)
   const newCancelToken = useCancelToken()
 
-  const { setUseCaseData, getUseCaseData } = useUserPreferences()
+  const { createOrUpdateRoadDamage, roadDamageList, clearRoadDamages } =
+    useUseCases()
   const [roadDamageData, setRoadDamageData] = useState<RoadDamageUseCaseData[]>(
     []
   )
@@ -45,13 +45,9 @@ export default function RoadDamageMap(): ReactElement {
   const [mapData, setMapData] = useState<RoadDamageMapData[]>([])
 
   useEffect(() => {
-    const newUseCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
-      ROAD_DAMAGE_USECASE_NAME
-    )
-    console.log({ newUseCaseData })
-    if (!newUseCaseData) return
-    setRoadDamageData(newUseCaseData)
-  }, [getUseCaseData])
+    if (!roadDamageList) return
+    setRoadDamageData(roadDamageList)
+  }, [roadDamageList])
 
   useEffect(() => {
     if (!roadDamageData || roadDamageData.length < 1) {
@@ -139,28 +135,20 @@ export default function RoadDamageMap(): ReactElement {
 
     if (!resultData) return
 
-    const useCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
-      ROAD_DAMAGE_USECASE_NAME
-    )
-
-    const filteredUseCaseData: RoadDamageUseCaseData[] =
-      useCaseData?.filter((data) => data.job.jobId !== job.jobId) || []
-
     const newuseCaseData: RoadDamageUseCaseData = {
       job,
       result: resultData
     }
 
-    setUseCaseData<RoadDamageUseCaseData[]>(ROAD_DAMAGE_USECASE_NAME, [
-      ...filteredUseCaseData,
-      newuseCaseData
-    ])
+    createOrUpdateRoadDamage(newuseCaseData)
   }
 
-  const clearData = () => {
+  const clearData = async () => {
     if (mapData.length < 1) return
-    if (confirm('All data will be removed from your cache. Proceed?'))
-      setUseCaseData(ROAD_DAMAGE_USECASE_NAME, [])
+    if (!confirm('All data will be removed from your cache. Proceed?')) return
+
+    await clearRoadDamages()
+    toast.success('Road Damage data was cleared.')
   }
 
   return (

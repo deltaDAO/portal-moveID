@@ -11,7 +11,7 @@ export interface RoadDamage {
   damageClass: string
   lastObservation: string
   heading: string
-  gpsCoordinate: GPSCoordinate
+  gpsCoordinates: GPSCoordinate
   confidence: number
 }
 
@@ -40,12 +40,4 @@ export interface RoadDamageImage {
 export interface RoadDamageMapData {
   image: RoadDamageImage
   roadDamages: RoadDamage[]
-}
-
-/**
- * Used to store data in local storage
- */
-export interface RoadDamageUseCaseData {
-  job: ComputeJobMetaData
-  result: RoadDamageMapData[]
 }

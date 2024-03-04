@@ -1,21 +1,15 @@
+import { LogLevel, LoggerInstance } from '@oceanprotocol/lib'
+import { isBrowser } from '@utils/index'
 import {
-  createContext,
-  useContext,
   ReactElement,
   ReactNode,
-  useState,
+  createContext,
+  useContext,
   useEffect,
-  useCallback
+  useState
 } from 'react'
-import { LoggerInstance, LogLevel } from '@oceanprotocol/lib'
-import { isBrowser } from '@utils/index'
-import { useMarketMetadata } from './MarketMetadata'
 import { AUTOMATION_MODES } from './Automation/AutomationProvider'
-
-interface UseCaseData<T> {
-  name: string
-  data: T
-}
+import { useMarketMetadata } from './MarketMetadata'
 
 interface UserPreferencesValue {
   debug: boolean
@@ -38,9 +32,6 @@ interface UserPreferencesValue {
   setAutomationWalletJSON: (encryptedWallet: string) => void
   automationWalletMode: AUTOMATION_MODES
   setAutomationWalletMode: (mode: AUTOMATION_MODES) => void
-  useCases: UseCaseData<any>[]
-  getUseCaseData: <T>(name: string) => UseCaseData<T>['data']
-  setUseCaseData: <T>(name: string, data: UseCaseData<T>['data']) => void
 }
 
 const UserPreferencesContext = createContext(null)
@@ -100,10 +91,6 @@ function UserPreferencesProvider({
       localStorage?.automationWalletMode || AUTOMATION_MODES.SIMPLE
     )
 
-  const [useCases, setUseCases] = useState<UseCaseData<any>[]>(
-    localStorage?.useCases || []
-  )
-
   // Write values to localStorage on change
   useEffect(() => {
     setLocalStorage({
@@ -115,8 +102,7 @@ function UserPreferencesProvider({
       showPPC,
       allowExternalContent,
       automationWalletJSON: automationWallet,
-      automationWalletMode,
-      useCases
+      automationWalletMode
     })
   }, [
     chainIds,
@@ -127,8 +113,7 @@ function UserPreferencesProvider({
     showPPC,
     allowExternalContent,
     automationWallet,
-    automationWalletMode,
-    useCases
+    automationWalletMode
   ])
 
   // Set ocean.js log levels, default: Error
@@ -166,27 +151,6 @@ function UserPreferencesProvider({
     setBookmarks(newPinned)
   }, [bookmarks])
 
-  const getUseCaseData = useCallback(
-    function <T>(name: string): UseCaseData<T>['data'] {
-      try {
-        return useCases?.find((useCase) => useCase.name === name).data
-      } catch {
-        return undefined
-      }
-    },
-    [useCases]
-  )
-
-  function setUseCaseData<T>(name: string, data: UseCaseData<T>['data']): void {
-    setUseCases([
-      ...useCases.filter((useCase) => useCase.name !== name),
-      {
-        name,
-        data
-      }
-    ])
-  }
-
   // chainIds old data migration
   // remove deprecated networks from user-saved chainIds
   useEffect(() => {
@@ -218,10 +182,8 @@ function UserPreferencesProvider({
           automationWalletJSON: automationWallet,
           setAutomationWalletJSON: setAutomationWallet,
           automationWalletMode,
-          setAutomationWalletMode,
-          getUseCaseData,
-          setUseCaseData
-        } as UserPreferencesValue
+          setAutomationWalletMode
+        } satisfies UserPreferencesValue
       }
     >
       {children}
