@@ -1,4 +1,4 @@
-import Dexie, { Table } from 'dexie'
+import Dexie, { IndexableType, Table } from 'dexie'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ReactElement, ReactNode, createContext, useContext } from 'react'
 import { DATABASE_NAME } from './_contants'
@@ -21,7 +21,9 @@ export class UseCaseDB extends Dexie {
 export const database = new UseCaseDB()
 
 interface UseCasesValue {
-  createOrUpdateRoadDamage: (roadDamage: RoadDamageUseCaseData) => Promise<void>
+  createOrUpdateRoadDamage: (
+    roadDamage: RoadDamageUseCaseData
+  ) => Promise<IndexableType>
   roadDamageList: RoadDamageUseCaseData[]
   clearRoadDamages: () => Promise<void>
 }
