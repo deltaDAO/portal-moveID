@@ -61,21 +61,8 @@ export default function RoadDamageMap(): ReactElement {
     console.log('Road Damage Data Updated:')
     console.dir(roadDamageData, { depth: null })
 
-    const results = roadDamageData.map((data) => data.result)
-
-    const newMapData: RoadDamageMapData[] = results
-      .map((result) =>
-        result.detections
-          .map((detection) =>
-            detection.roadDamages.map((damage) => ({
-              ...damage,
-              image: result.images.find((image) =>
-                image.path.includes(detection.resultName)
-              )
-            }))
-          )
-          .reduce((previous, current) => previous.concat(current), [])
-      )
+    const newMapData: RoadDamageMapData[] = roadDamageData
+      .map((data) => data.result)
       .reduce((previous, current) => previous.concat(current), [])
 
     setMapData(newMapData)
@@ -150,7 +137,7 @@ export default function RoadDamageMap(): ReactElement {
     const binary = await getResultBinaryData(jobResult)
     const resultData = await transformBinaryToRoadDamageResult(binary)
 
-    if (!resultData?.detections) return
+    if (!resultData) return
 
     const useCaseData = getUseCaseData<RoadDamageUseCaseData[]>(
       ROAD_DAMAGE_USECASE_NAME

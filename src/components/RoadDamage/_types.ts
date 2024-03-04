@@ -20,10 +20,6 @@ export interface RoadDamageResult {
   roadDamages: RoadDamage[]
 }
 
-export interface RoadDamageMapData extends RoadDamage {
-  image: RoadDamageImage
-}
-
 export interface GPSCoordinate {
   lat: number
   lng: number
@@ -38,10 +34,18 @@ export interface RoadDamageImage {
   type: string
 }
 
+/**
+ * Used to display data in map view
+ */
+export interface RoadDamageMapData {
+  image: RoadDamageImage
+  roadDamages: RoadDamage[]
+}
+
+/**
+ * Used to store data in local storage
+ */
 export interface RoadDamageUseCaseData {
   job: ComputeJobMetaData
-  result: {
-    detections: RoadDamageResult[]
-    images: RoadDamageImage[]
-  }
+  result: RoadDamageMapData[]
 }

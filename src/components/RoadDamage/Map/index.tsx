@@ -3,53 +3,72 @@ import 'leaflet-defaulticon-compatibility'
 import { LatLngTuple } from 'leaflet'
 import { useEffect, useState } from 'react'
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
-import { RoadDamage, RoadDamageImage, RoadDamageMapData } from '../_types'
+import {
+  GPSCoordinate,
+  RoadDamage,
+  RoadDamageImage,
+  RoadDamageMapData
+} from '../_types'
 import styles from './index.module.css'
 
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'
 import 'leaflet/dist/leaflet.css'
 import RoadDamageDetails from '../RoadDamage'
 import { getConfidenceColor } from '../_utils'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 export interface MapProps {
-  data: (RoadDamage & { image: RoadDamageImage })[]
+  data: RoadDamageMapData[]
 }
 
 function Map({ data }: MapProps) {
   const [markers, setMarkers] = useState<JSX.Element[]>()
   const [center, setCenter] = useState<LatLngTuple>()
-  const [currentDamage, setCurrentDamage] = useState<RoadDamageMapData>()
+  const [currentMapDataEntry, setCurrentMapDataEntry] =
+    useState<RoadDamageMapData>()
 
   useEffect(() => {
-    const mapMarkers = data.map((d, index) => {
-      d.gpsCoordinate.lng = Number(d.gpsCoordinate.lng)
-      d.gpsCoordinate.lat = Number(d.gpsCoordinate.lat)
+    const coords: GPSCoordinate[] = []
+    const mapMarkers = data.map((entry, index) => {
+      if (!entry.roadDamages || entry.roadDamages.length < 1) return <></>
+
+      const lat = Number(entry.roadDamages[0].gpsCoordinate.lat)
+      const lng = Number(entry.roadDamages[0].gpsCoordinate.lng)
+      coords.push({ lat, lng })
 
       return (
         <CircleMarker
-          key={`${d.gpsCoordinate.lat}-${d.gpsCoordinate.lng}-${index}`}
-          center={d.gpsCoordinate}
-          pathOptions={{ color: getConfidenceColor(d.confidence) }}
+          key={`${lat}-${lng}-${index}`}
+          center={{ lat, lng }}
+          // pathOptions={{ color: getConfidenceColor(d.confidence) }}
           eventHandlers={{
-            click: () => setCurrentDamage(d)
+            click: () => setCurrentMapDataEntry(entry)
           }}
         >
           <Tooltip>
-            <strong>
-              Road Damage{' '}
-              <span style={{ color: getConfidenceColor(d.confidence) }}>
-                ({Math.round(d.confidence * 100)}%)
-              </span>
-            </strong>
-            <br />
-            <span>Type: {d.type}</span>
+            <strong>Road Damage</strong>
             <br />
             <span>
-              Coordinates: [
-              {Object.values(d.gpsCoordinate)
-                .map((el) => Number(el | 0).toFixed(4))
-                .toString()}
-              ]
+              Types:{' '}
+              {entry.roadDamages
+                .map((damage, i) => (
+                  <span
+                    key={`road-damage-entry-${index}-damage-types-${i}`}
+                    style={{ color: getConfidenceColor(damage.confidence) }}
+                  >
+                    {damage.type}
+                    {' ('}
+                    {Math.round(damage.confidence * 100)}
+                    {'%)'}
+                  </span>
+                ))
+                .join(', ')}
+            </span>
+            <br />
+            <span>
+              Coordinates: [{lat.toFixed(4).toString()}
+              {', '}
+              {lng.toFixed(4).toString()}]
             </span>
           </Tooltip>
         </CircleMarker>
@@ -58,8 +77,7 @@ function Map({ data }: MapProps) {
 
     setMarkers(mapMarkers)
 
-    const coords = data.map((d) => d.gpsCoordinate)
-
+    // Calculate center of map
     const sum = coords.reduce(
       (partialSum, c) => {
         partialSum[0] += c.lat
@@ -68,15 +86,13 @@ function Map({ data }: MapProps) {
       },
       [0, 0]
     )
-
     const centroid = sum.map((el) => {
       const avg = el / Object.entries(data).length
       return Number(avg.toFixed(6))
     })
-
     setCenter(centroid as LatLngTuple)
 
-    console.log('update map', { coords, centroid })
+    LoggerInstance.log('[RoadDamage]: updated map view', { coords, centroid })
   }, [data])
 
   return (
@@ -98,7 +114,9 @@ function Map({ data }: MapProps) {
           <p>Calculating map...</p>
         )}
       </div>
-      {currentDamage && <RoadDamageDetails damage={currentDamage} />}
+      {currentMapDataEntry && (
+        <RoadDamageDetails damage={currentMapDataEntry} />
+      )}
     </>
   )
 }

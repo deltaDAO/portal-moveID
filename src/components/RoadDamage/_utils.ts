@@ -2,6 +2,7 @@ import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
 import {
   RoadDamageImage,
+  RoadDamageMapData,
   RoadDamageResult,
   RoadDamageUseCaseData
 } from './_types'
@@ -23,53 +24,65 @@ export async function getResultBinaryData(url: string) {
 export async function transformBinaryToRoadDamageResult(
   binary: any
 ): Promise<RoadDamageUseCaseData['result']> {
+  let zip: JSZip
+  let detectionsJSON: string
+
+  const {
+    detectionsFileName,
+    imagesFolderName
+    // metadataFileName
+  } = ROAD_DAMAGE_RESULT_ZIP
+
   try {
-    const zip = await JSZip.loadAsync(binary)
+    zip = await JSZip.loadAsync(binary)
 
-    const {
-      folderName,
-      detectionsFileName,
-      imagesFolderName,
-      metadataFileName
-    } = ROAD_DAMAGE_RESULT_ZIP
+    console.log({ zip })
 
-    const detectionsString = await zip
-      .file(`${folderName}/${detectionsFileName}`)
-      .async('string')
-
-    const detectionsJSON: RoadDamageResult[] = JSON.parse(detectionsString)
-    console.dir(detectionsJSON, { depth: null })
-
-    const imageFilePaths = Object.keys(
-      zip.folder(imagesFolderName).files
-    ).filter(
-      // make sure to only use jpg or jpeg files
-      (path) => path.match('/.*\\.jp[e]?g')
+    detectionsJSON = await zip.file(detectionsFileName).async('string')
+  } catch (error) {
+    LoggerInstance.error(
+      `Could not unzip result. Format may mismatch the current configuration.`,
+      error
     )
+    return
+  }
 
-    const resultImages: RoadDamageImage[] = []
-    for (const path of imageFilePaths) {
+  let detections: RoadDamageResult[]
+  try {
+    detections = JSON.parse(detectionsJSON)
+    console.dir(detections, { depth: null })
+  } catch (error) {
+    LoggerInstance.error(`Could parse result. Expected JSON file.`, error)
+    return
+  }
+
+  const result: RoadDamageMapData[] = []
+
+  for (const detection of detections) {
+    const { resultName, roadDamages } = detection
+    const path = `${imagesFolderName}/${resultName}`
+
+    try {
       const image: RoadDamageImage = {
         path,
-        name: path.split('/').pop().split('.')[0], // path is 'result/images/file-name.jpg'
+        name: resultName,
         data: await zip.file(path).async('base64'),
         type: path.split('.').pop() // try getting filetype from image path
       }
-      resultImages.push(image)
-    }
 
-    console.log({ resultImages })
-
-    return {
-      detections: detectionsJSON,
-      images: resultImages
+      result.push({
+        image,
+        roadDamages
+      })
+    } catch (error) {
+      LoggerInstance.error(
+        `[RoadDamage]: could not load image at ${path}`,
+        error
+      )
     }
-  } catch (e) {
-    LoggerInstance.error(
-      `Could not unzip result. Format may mismatch the current configuration.`,
-      e
-    )
   }
+
+  return result
 }
 
 export function getConfidenceColor(confidence: number) {
