@@ -9,7 +9,7 @@ import styles from './index.module.css'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'
 import 'leaflet/dist/leaflet.css'
-import RoadDamageDetails from '../RoadDamage'
+import RoadDamageDetails from '../Details'
 import { getConfidenceColor } from '../_utils'
 
 export interface MapProps {

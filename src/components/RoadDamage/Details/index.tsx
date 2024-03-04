@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react'
+import { ReactElement } from 'react'
 import styles from './index.module.css'
 import { RoadDamageMapData } from '../_types'
 import Time from '../../@shared/atoms/Time'
