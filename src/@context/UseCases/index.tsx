@@ -28,6 +28,7 @@ interface UseCasesValue {
   updateRoadDamages: (
     roadDamages: RoadDamageUseCaseData[]
   ) => Promise<IndexableType>
+  deleteRoadDamage: (id: number) => Promise<void>
   clearRoadDamages: () => Promise<void>
 }
 
@@ -71,12 +72,16 @@ function UseCasesProvider({ children }: { children: ReactNode }): ReactElement {
     return updated
   }
 
+  const deleteRoadDamage = async (id: number) => {
+    await database.roadDamages.delete(id)
+
+    LoggerInstance.log(`[UseCases]: deleted #${id} from roadDamages table`)
+  }
+
   const clearRoadDamages = async () => {
-    const cleared = await database.roadDamages.clear()
+    await database.roadDamages.clear()
 
-    LoggerInstance.log(`[UseCases]: clear roadDamages table`, { cleared })
-
-    return cleared
+    LoggerInstance.log(`[UseCases]: cleared roadDamages table`)
   }
 
   return (
@@ -86,6 +91,7 @@ function UseCasesProvider({ children }: { children: ReactNode }): ReactElement {
           createOrUpdateRoadDamage,
           roadDamageList,
           updateRoadDamages,
+          deleteRoadDamage,
           clearRoadDamages
         } satisfies UseCasesValue
       }

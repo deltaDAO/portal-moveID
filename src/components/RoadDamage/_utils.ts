@@ -22,7 +22,7 @@ export function getMapColor(inputDids: string[]): string {
   const seed = inputDids.join()
   return randomColor({
     seed,
-    luminosity: 'bright'
+    luminosity: 'dark'
   })
 }
 

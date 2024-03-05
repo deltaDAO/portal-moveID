@@ -55,14 +55,14 @@ export default function ComputeJobs({
   jobs,
   isLoading,
   refetchJobs,
-  actions,
+  getActions,
   hideDetails
 }: {
   minimal?: boolean
   jobs?: ComputeJobMetaData[]
   isLoading?: boolean
   refetchJobs?: any
-  actions?: {
+  getActions?: (job: ComputeJobMetaData) => {
     label: string
     onClick: (job: ComputeJobMetaData) => void
   }[]
@@ -75,12 +75,12 @@ export default function ComputeJobs({
     useState<TableOceanColumn<ComputeJobMetaData>>(defaultActionsColumn)
 
   useEffect(() => {
-    if (!actions || actions.length < 1) return
+    if (!getActions) return
     setActionsColumn({
       name: defaultActionsColumn.name,
       selector: (row) => (
         <div>
-          {actions.map((action, i) => (
+          {getActions(row).map((action, i) => (
             <Button
               key={`compute-job-action-${action.label}-${i}`}
               size="small"
@@ -94,7 +94,7 @@ export default function ComputeJobs({
         </div>
       )
     })
-  }, [actions])
+  }, [getActions])
 
   return accountId ? (
     <>

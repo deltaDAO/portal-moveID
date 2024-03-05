@@ -36,8 +36,12 @@ export default function RoadDamageMap(): ReactElement {
   const [isLoadingJobs, setIsLoadingJobs] = useState(false)
   const newCancelToken = useCancelToken()
 
-  const { createOrUpdateRoadDamage, roadDamageList, clearRoadDamages } =
-    useUseCases()
+  const {
+    createOrUpdateRoadDamage,
+    roadDamageList,
+    deleteRoadDamage,
+    clearRoadDamages
+  } = useUseCases()
 
   const [mapData, setMapData] = useState<RoadDamageUseCaseData[]>([])
 
@@ -152,12 +156,51 @@ export default function RoadDamageMap(): ReactElement {
     }
   }
 
+  const deleteJobResultFromDB = async (job: ComputeJobMetaData) => {
+    if (!confirm(`Are you sure you want to delete the result from map view?`))
+      return
+
+    const rowToDelete = roadDamageList.find(
+      (row) => row.job.jobId === job.jobId
+    )
+    if (!rowToDelete) return
+
+    await deleteRoadDamage(rowToDelete.id)
+    toast.success(`Removed compute job result from map view.`)
+  }
+
   const clearData = async () => {
     if (mapData.length < 1) return
     if (!confirm('All data will be removed from your cache. Proceed?')) return
 
     await clearRoadDamages()
     toast.success('Road Damage data was cleared.')
+  }
+
+  const getCustomActionsPerComputeJob = (job: ComputeJobMetaData) => {
+    const addAction = {
+      label: 'Add',
+      onClick: () => {
+        addComputeResultToUseCaseDB(job)
+      }
+    }
+    const deleteAction = {
+      label: 'Remove',
+      onClick: () => {
+        deleteJobResultFromDB(job)
+      }
+    }
+
+    const viewContainsResult = roadDamageList.find(
+      (row) => row.job.jobId === job.jobId
+    )
+
+    const actionArray = []
+
+    if (viewContainsResult) actionArray.push(deleteAction)
+    else actionArray.push(addAction)
+
+    return actionArray
   }
 
   return (
@@ -168,14 +211,7 @@ export default function RoadDamageMap(): ReactElement {
             jobs={jobs}
             isLoading={isLoadingJobs}
             refetchJobs={() => setRefetchJobs(!refetchJobs)}
-            actions={[
-              {
-                label: 'Add',
-                onClick: (job) => {
-                  addComputeResultToUseCaseDB(job)
-                }
-              }
-            ]}
+            getActions={getCustomActionsPerComputeJob}
             hideDetails
           />
 
