@@ -12,7 +12,6 @@ import { getComputeJobs } from '../../@utils/compute'
 import Accordion from '../@shared/Accordion'
 import Button from '../@shared/atoms/Button'
 import ComputeJobs from '../Profile/History/ComputeJobs'
-import { ROAD_DAMAGE_RESULT_FILE_NAME } from './_constants'
 import { RoadDamageMapData } from './_types'
 import {
   getResultBinaryData,
@@ -20,6 +19,7 @@ import {
 } from './_utils'
 import styles from './index.module.css'
 import { toast } from 'react-toastify'
+import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
@@ -31,6 +31,7 @@ export default function RoadDamageMap(): ReactElement {
   const { autoWallet } = useAutomation()
 
   const { asset: roadDamageAlgoAsset } = useAsset()
+  const { fileName: resultFileName } = ROAD_DAMAGE_RESULT_ZIP
   const [jobs, setJobs] = useState<ComputeJobMetaData[]>([])
   const [refetchJobs, setRefetchJobs] = useState(false)
   const [isLoadingJobs, setIsLoadingJobs] = useState(false)
@@ -69,7 +70,7 @@ export default function RoadDamageMap(): ReactElement {
       if (!accountId) {
         return
       }
-      console.log({ roadDamageAlgoAsset, accountId })
+
       try {
         type === 'init' && setIsLoadingJobs(true)
         const computeJobs = await getComputeJobs(
@@ -89,15 +90,18 @@ export default function RoadDamageMap(): ReactElement {
             computeJobs.computeJobs.push(job)
           })
         }
-
+        console.log({
+          computeJobs: computeJobs.computeJobs.filter((j) =>
+            j.providerUrl.includes('dd1')
+          )
+        })
         setJobs(
           computeJobs.computeJobs.filter(
             (job) =>
               job.algoDID === roadDamageAlgoAsset?.id &&
               job.status === 70 &&
-              job.results.filter(
-                (result) => result.filename === ROAD_DAMAGE_RESULT_FILE_NAME
-              ).length > 0
+              job.results.filter((result) => result.filename === resultFileName)
+                .length > 0
           )
         )
         setIsLoadingJobs(!computeJobs.isLoaded)
@@ -125,9 +129,7 @@ export default function RoadDamageMap(): ReactElement {
       datasetDDO.services[0].serviceEndpoint,
       signerToUse,
       job.jobId,
-      job.results.findIndex(
-        (result) => result.filename === ROAD_DAMAGE_RESULT_FILE_NAME
-      )
+      job.results.findIndex((result) => result.filename === resultFileName)
     )
 
     const binary = await getResultBinaryData(jobResult)

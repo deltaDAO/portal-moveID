@@ -7,10 +7,7 @@ import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage
 
 export async function getResultBinaryData(url: string) {
   // TODO: replace
-  const resultData = await JSZipUtils.getBinaryContent(
-    'https://raw.githubusercontent.com/deltaDAO/files/main/result.zip'
-  )
-  // const resultData = await JSZipUtils.getBinaryContent(jobResult)
+  const resultData = await JSZipUtils.getBinaryContent(url)
 
   return resultData
 }

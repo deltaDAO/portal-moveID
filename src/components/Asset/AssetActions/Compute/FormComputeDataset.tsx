@@ -348,7 +348,6 @@ export default function FormStartCompute({
         validUntil={validUntil}
         totalPrices={totalPrices}
       />
-
       <ButtonBuy
         action="compute"
         disabled={

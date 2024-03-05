@@ -1,14 +1,13 @@
 import { RoadDamage } from './_types'
 
 export const ROAD_DAMAGE_ALGO_DID =
-  'did:op:b4be1f60c197890bfebc041e66731a2c6f98f520169a9f38173c19e29353b4d0' // GEN-X
+  'did:op:77ff2a1f7ecb35b2684ecdd8f932bfdc8a66421345fc4e056f262ef627d70e15' // GEN-X
 // 'did:op:a1f800fadd32267ae6662b4e411396bd180242ca8274810c9e1a771f3920468d' // PONTUS-X
-
-export const ROAD_DAMAGE_RESULT_FILE_NAME = 'model'
 
 export const ROAD_DAMAGE_USECASE_NAME = 'roaddamage'
 
 export const ROAD_DAMAGE_RESULT_ZIP = {
+  fileName: 'result.zip',
   metadataFileName: 'metadata.json',
   detectionsFileName: 'detections.json',
   imagesFolderName: 'images'

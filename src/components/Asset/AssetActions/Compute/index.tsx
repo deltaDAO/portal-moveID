@@ -637,7 +637,7 @@ export default function Compute({
       {/* TODO: remove hardcoded (e.g. move to asset.useCase or similar) */}
       {accountId && asset?.id === ROAD_DAMAGE_ALGO_DID && (
         <div className={styles.useCaseLink}>
-          <Button to="/roaddamage" style="text">
+          <Button to="/usecases/roaddamage" style="text">
             Road Damage Visualization
           </Button>
         </div>

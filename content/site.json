@@ -14,6 +14,15 @@
       "link": "/verify"
     },
     {
+      "name": "Use Cases",
+      "subItems": [
+        {
+          "name": "Road Damage",
+          "link": "/usecases/roaddamage"
+        }
+      ]
+    },
+    {
       "name": "Log",
       "link": "https://explorer.pontus-x.eu/"
     },
