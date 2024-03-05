@@ -1,6 +1,6 @@
 import { LoggerInstance, ProviderInstance } from '@oceanprotocol/lib'
 import dynamic from 'next/dynamic'
-import { ReactElement, useCallback, useEffect, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAccount, useSigner } from 'wagmi'
 import { useAsset } from '../../@context/Asset'
@@ -15,6 +15,7 @@ import Button from '../@shared/atoms/Button'
 import ComputeJobs from '../Profile/History/ComputeJobs'
 import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import {
+  getMapColor,
   getResultBinaryData,
   transformBinaryToRoadDamageResult
 } from './_utils'
@@ -35,6 +36,8 @@ export default function RoadDamageMap(): ReactElement {
   const [refetchJobs, setRefetchJobs] = useState(false)
   const [isLoadingJobs, setIsLoadingJobs] = useState(false)
   const newCancelToken = useCancelToken()
+
+  const scrollToMapRef = useRef<any>()
 
   const {
     createOrUpdateRoadDamage,
@@ -190,6 +193,17 @@ export default function RoadDamageMap(): ReactElement {
         deleteJobResultFromDB(job)
       }
     }
+    const colorLeged = {
+      label: (
+        <span
+          className={styles.legend}
+          style={{ backgroundColor: getMapColor(job.inputDID) }}
+        />
+      ),
+      onClick: () => {
+        if (scrollToMapRef?.current) scrollToMapRef.current.scrollIntoView()
+      }
+    }
 
     const viewContainsResult = roadDamageList.find(
       (row) => row.job.jobId === job.jobId
@@ -197,8 +211,10 @@ export default function RoadDamageMap(): ReactElement {
 
     const actionArray = []
 
-    if (viewContainsResult) actionArray.push(deleteAction)
-    else actionArray.push(addAction)
+    if (viewContainsResult) {
+      actionArray.push(deleteAction)
+      actionArray.push(colorLeged)
+    } else actionArray.push(addAction)
 
     return actionArray
   }
@@ -224,7 +240,7 @@ export default function RoadDamageMap(): ReactElement {
         </Accordion>
       </div>
       {mapData && mapData.length > 0 && (
-        <div>
+        <div ref={scrollToMapRef}>
           <span className={styles.info}>
             Map info calculated from {mapData.length} compute job result
             {mapData.length > 1 && 's'}.

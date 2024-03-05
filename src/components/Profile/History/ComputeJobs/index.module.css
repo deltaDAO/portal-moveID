@@ -24,3 +24,12 @@
   margin-right: calc(var(--spacer) / 6);
   margin-bottom: -0.1rem;
 }
+
+.customActios {
+  display: flex;
+  justify-content: center;
+}
+
+.customActionButton {
+  margin-right: calc(var(--spacer) / 4);
+}

@@ -17,3 +17,9 @@
   text-align: center;
   font-style: italic;
 }
+
+.legend {
+  display: block;
+  width: 20px;
+  height: 20px;
+}

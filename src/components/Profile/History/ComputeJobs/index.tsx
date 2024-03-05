@@ -63,7 +63,7 @@ export default function ComputeJobs({
   isLoading?: boolean
   refetchJobs?: any
   getActions?: (job: ComputeJobMetaData) => {
-    label: string
+    label: ReactElement
     onClick: (job: ComputeJobMetaData) => void
   }[]
   hideDetails?: boolean
@@ -79,13 +79,14 @@ export default function ComputeJobs({
     setActionsColumn({
       name: defaultActionsColumn.name,
       selector: (row) => (
-        <div>
+        <div className={styles.customActios}>
           {getActions(row).map((action, i) => (
             <Button
               key={`compute-job-action-${action.label}-${i}`}
               size="small"
               style="text"
               onClick={() => action.onClick(row)}
+              className={styles.customActionButton}
             >
               {action.label}
             </Button>
