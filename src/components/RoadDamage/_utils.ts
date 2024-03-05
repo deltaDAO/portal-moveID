@@ -9,6 +9,7 @@ import { CONFIDENCE_COLOR_MAP, ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
 import randomColor from 'randomcolor'
+import { createHash } from 'crypto'
 
 export function getConfidenceColor(confidence: number) {
   // make sure array is sorted correctly for next find call
@@ -19,7 +20,10 @@ export function getConfidenceColor(confidence: number) {
 }
 
 export function getMapColor(inputDids: string[]): string {
-  const seed = inputDids.join()
+  const joinedDids = inputDids.join()
+
+  const seed = createHash('sha512').update(joinedDids).digest('base64')
+
   return randomColor({
     seed,
     luminosity: 'dark'
