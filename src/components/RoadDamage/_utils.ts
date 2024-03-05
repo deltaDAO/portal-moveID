@@ -21,7 +21,8 @@ export function getConfidenceColor(confidence: number) {
 export function getMapColor(inputDids: string[]): string {
   const seed = inputDids.join()
   return randomColor({
-    seed
+    seed,
+    luminosity: 'bright'
   })
 }
 
