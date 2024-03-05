@@ -30,13 +30,12 @@ function Map({ data }: MapProps) {
 
       const roadDamageCoordinates = entry.roadDamages.find(
         (damage) => damage.gpsCoordinates?.lat && damage.gpsCoordinates?.lng
-      )
+      ).gpsCoordinates
 
       if (!roadDamageCoordinates) return undefined
 
-      const lat = Number(entry.roadDamages[0].gpsCoordinates.lat)
-      const lng = Number(entry.roadDamages[0].gpsCoordinates.lng)
-      coords.push({ lat, lng })
+      const lat = Number(roadDamageCoordinates.lat)
+      const lng = Number(roadDamageCoordinates.lng)
 
       return (
         <CircleMarker

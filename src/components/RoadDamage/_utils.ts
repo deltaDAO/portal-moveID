@@ -4,6 +4,7 @@ import { RoadDamageImage, RoadDamageMapData, RoadDamageResult } from './_types'
 import { CONFIDENCE_COLOR_MAP, ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
+import randomColor from 'randomcolor'
 
 export async function getResultBinaryData(url: string) {
   // TODO: replace
@@ -82,4 +83,11 @@ export function getConfidenceColor(confidence: number) {
 
   // return the first color found in sorted array where confidence > threshold
   return sorted.find((entry) => confidence > entry.threshold).color
+}
+
+export function getRandomMapColors(count: number): string[] {
+  return randomColor({
+    count,
+    luminosity: 'light'
+  })
 }
