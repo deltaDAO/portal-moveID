@@ -3,17 +3,18 @@ import 'leaflet-defaulticon-compatibility'
 import { FeatureGroup, LatLngBounds, LatLngTuple, Marker } from 'leaflet'
 import { useEffect, useState } from 'react'
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
-import { GPSCoordinate, RoadDamageMapData } from '../_types'
+import { GPSCoordinate, RoadDamageResultWithImage } from '../_types'
 import styles from './index.module.css'
 
 import { LoggerInstance } from '@oceanprotocol/lib'
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'
 import 'leaflet/dist/leaflet.css'
+import { RoadDamageUseCaseData } from '../../../@context/UseCases/models/RoadDamage.model'
 import RoadDamageDetails from '../Details'
-import { getConfidenceColor } from '../_utils'
+import { getConfidenceColor, getMapColor } from '../_utils'
 
 export interface MapProps {
-  data: RoadDamageMapData[]
+  data: RoadDamageUseCaseData[]
 }
 
 function Map({ data }: MapProps) {
@@ -22,7 +23,7 @@ function Map({ data }: MapProps) {
   const [bounds, setBounds] = useState<LatLngBounds>()
   const [center, setCenter] = useState<LatLngTuple>()
   const [currentMapDataEntry, setCurrentMapDataEntry] =
-    useState<RoadDamageMapData>()
+    useState<RoadDamageResultWithImage>()
 
   useEffect(() => {
     if (coords.length < 1) return
@@ -55,59 +56,67 @@ function Map({ data }: MapProps) {
 
   useEffect(() => {
     const newCoords: GPSCoordinate[] = []
-    const mapMarkers = data.map((entry, index) => {
-      if (!entry.roadDamages || entry.roadDamages.length < 1) return undefined
+    const mapMarkers = data
+      .map((row) => {
+        return row.result.map((entry, index) => {
+          if (!entry.roadDamages || entry.roadDamages.length < 1)
+            return undefined
 
-      const roadDamageCoordinates = entry.roadDamages.find(
-        (damage) => damage.gpsCoordinates?.lat && damage.gpsCoordinates?.lng
-      ).gpsCoordinates
+          // const color = getRandomMapColor(lastRow.job.inputDID.join())
 
-      if (!roadDamageCoordinates) return undefined
+          const roadDamageCoordinates = entry.roadDamages.find(
+            (damage) => damage.gpsCoordinates?.lat && damage.gpsCoordinates?.lng
+          ).gpsCoordinates
 
-      const lat = Number(roadDamageCoordinates.lat)
-      const lng = Number(roadDamageCoordinates.lng)
+          if (!roadDamageCoordinates) return undefined
 
-      newCoords.push({ lat, lng })
+          const lat = Number(roadDamageCoordinates.lat)
+          const lng = Number(roadDamageCoordinates.lng)
 
-      return (
-        <CircleMarker
-          key={`${lat}-${lng}-${index}`}
-          center={{ lat, lng }}
-          eventHandlers={{
-            click: () => setCurrentMapDataEntry(entry)
-          }}
-        >
-          <Tooltip>
-            <div className={styles.tooltip}>
-              <strong>Road Damage</strong>
-              <br />
-              <div className={styles.types}>
-                Types:{' '}
-                {entry.roadDamages.map((damage, i) => (
-                  <span
-                    key={`road-damage-entry-${index}-damage-types-${i}`}
-                    style={{ color: getConfidenceColor(damage.confidence) }}
-                  >
-                    {damage.type}
-                    {' ('}
-                    {Math.round(damage.confidence * 100)}
-                    {'%)'}
-                    {i < entry.roadDamages.length - 1 && ', '}
+          newCoords.push({ lat, lng })
+
+          return (
+            <CircleMarker
+              key={`${lat}-${lng}-${index}`}
+              center={{ lat, lng }}
+              eventHandlers={{
+                click: () => setCurrentMapDataEntry(entry)
+              }}
+              color={getMapColor(row.job.inputDID)}
+            >
+              <Tooltip>
+                <div className={styles.tooltip}>
+                  <strong>Road Damage</strong>
+                  <br />
+                  <div className={styles.types}>
+                    Types:{' '}
+                    {entry.roadDamages.map((damage, i) => (
+                      <span
+                        key={`road-damage-entry-${index}-damage-types-${i}`}
+                        style={{ color: getConfidenceColor(damage.confidence) }}
+                      >
+                        {damage.type}
+                        {' ('}
+                        {Math.round(damage.confidence * 100)}
+                        {'%)'}
+                        {i < entry.roadDamages.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </div>
+                  <br />
+                  <span>
+                    Coordinates:
+                    <br />[{lat.toFixed(4).toString()}
+                    {', '}
+                    {lng.toFixed(4).toString()}]
                   </span>
-                ))}
-              </div>
-              <br />
-              <span>
-                Coordinates:
-                <br />[{lat.toFixed(4).toString()}
-                {', '}
-                {lng.toFixed(4).toString()}]
-              </span>
-            </div>
-          </Tooltip>
-        </CircleMarker>
-      )
-    })
+                </div>
+              </Tooltip>
+            </CircleMarker>
+          )
+        })
+      })
+      .reduce((previous, current) => previous.concat(current), [])
 
     setCoords(newCoords)
     setMarkers(mapMarkers)

@@ -1,13 +1,31 @@
 import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
-import { RoadDamageImage, RoadDamageMapData, RoadDamageResult } from './_types'
+import {
+  RoadDamageImage,
+  RoadDamageResult,
+  RoadDamageResultWithImage
+} from './_types'
 import { CONFIDENCE_COLOR_MAP, ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
 import randomColor from 'randomcolor'
 
+export function getConfidenceColor(confidence: number) {
+  // make sure array is sorted correctly for next find call
+  const sorted = CONFIDENCE_COLOR_MAP.sort((a, b) => b.threshold - a.threshold)
+
+  // return the first color found in sorted array where confidence > threshold
+  return sorted.find((entry) => confidence > entry.threshold).color
+}
+
+export function getMapColor(inputDids: string[]): string {
+  const seed = inputDids.join()
+  return randomColor({
+    seed
+  })
+}
+
 export async function getResultBinaryData(url: string) {
-  // TODO: replace
   const resultData = await JSZipUtils.getBinaryContent(url)
 
   return resultData
@@ -48,7 +66,7 @@ export async function transformBinaryToRoadDamageResult(
     return
   }
 
-  const result: RoadDamageMapData[] = []
+  const result: RoadDamageResultWithImage[] = []
 
   for (const detection of detections) {
     const { resultName, roadDamages } = detection
@@ -75,19 +93,4 @@ export async function transformBinaryToRoadDamageResult(
   }
 
   return result
-}
-
-export function getConfidenceColor(confidence: number) {
-  // make sure array is sorted correctly for next find call
-  const sorted = CONFIDENCE_COLOR_MAP.sort((a, b) => b.threshold - a.threshold)
-
-  // return the first color found in sorted array where confidence > threshold
-  return sorted.find((entry) => confidence > entry.threshold).color
-}
-
-export function getRandomMapColors(count: number): string[] {
-  return randomColor({
-    count,
-    luminosity: 'light'
-  })
 }

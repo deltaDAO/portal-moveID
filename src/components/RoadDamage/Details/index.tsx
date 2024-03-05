@@ -1,6 +1,6 @@
 import { ReactElement } from 'react'
 import styles from './index.module.css'
-import { RoadDamageMapData } from '../_types'
+import { RoadDamageResultWithImage } from '../_types'
 import Time from '../../@shared/atoms/Time'
 import { getConfidenceColor } from '../_utils'
 import Button from '../../@shared/atoms/Button'
@@ -10,7 +10,7 @@ import Coordinates from '../Coordinates'
 export default function RoadDamageDetails({
   damage
 }: {
-  damage: RoadDamageMapData
+  damage: RoadDamageResultWithImage
 }): ReactElement {
   const { image, roadDamages } = damage
   return (

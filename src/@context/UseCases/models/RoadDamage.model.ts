@@ -1,4 +1,4 @@
-import { RoadDamageMapData } from '../../../components/RoadDamage/_types'
+import { RoadDamageResultWithImage } from '../../../components/RoadDamage/_types'
 
 /**
  * Table config
@@ -6,7 +6,7 @@ import { RoadDamageMapData } from '../../../components/RoadDamage/_types'
 export interface RoadDamageUseCaseData {
   id?: number
   job: ComputeJobMetaData
-  result: RoadDamageMapData[]
+  result: RoadDamageResultWithImage[]
 }
 
 export const ROAD_DAMAGE_TABLE = {

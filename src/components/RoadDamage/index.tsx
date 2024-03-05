@@ -1,6 +1,7 @@
 import { LoggerInstance, ProviderInstance } from '@oceanprotocol/lib'
 import dynamic from 'next/dynamic'
 import { ReactElement, useCallback, useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 import { useAccount, useSigner } from 'wagmi'
 import { useAsset } from '../../@context/Asset'
 import { useAutomation } from '../../@context/Automation/AutomationProvider'
@@ -12,14 +13,12 @@ import { getComputeJobs } from '../../@utils/compute'
 import Accordion from '../@shared/Accordion'
 import Button from '../@shared/atoms/Button'
 import ComputeJobs from '../Profile/History/ComputeJobs'
-import { RoadDamageMapData } from './_types'
+import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 import {
   getResultBinaryData,
   transformBinaryToRoadDamageResult
 } from './_utils'
 import styles from './index.module.css'
-import { toast } from 'react-toastify'
-import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
@@ -39,31 +38,17 @@ export default function RoadDamageMap(): ReactElement {
 
   const { createOrUpdateRoadDamage, roadDamageList, clearRoadDamages } =
     useUseCases()
-  const [roadDamageData, setRoadDamageData] = useState<RoadDamageUseCaseData[]>(
-    []
-  )
 
-  const [mapData, setMapData] = useState<RoadDamageMapData[]>([])
+  const [mapData, setMapData] = useState<RoadDamageUseCaseData[]>([])
 
   useEffect(() => {
-    if (!roadDamageList) return
-    setRoadDamageData(roadDamageList)
-  }, [roadDamageList])
-
-  useEffect(() => {
-    if (!roadDamageData || roadDamageData.length < 1) {
+    if (!roadDamageList) {
       setMapData([])
+      return
     }
 
-    console.log('Road Damage Data Updated:')
-    console.dir(roadDamageData, { depth: null })
-
-    const newMapData: RoadDamageMapData[] = roadDamageData
-      .map((data) => data.result)
-      .reduce((previous, current) => previous.concat(current), [])
-
-    setMapData(newMapData)
-  }, [roadDamageData])
+    setMapData(roadDamageList)
+  }, [roadDamageList])
 
   const fetchJobs = useCallback(
     async (type: string) => {
@@ -90,11 +75,7 @@ export default function RoadDamageMap(): ReactElement {
             computeJobs.computeJobs.push(job)
           })
         }
-        console.log({
-          computeJobs: computeJobs.computeJobs.filter((j) =>
-            j.providerUrl.includes('dd1')
-          )
-        })
+
         setJobs(
           computeJobs.computeJobs.filter(
             (job) =>
@@ -117,32 +98,58 @@ export default function RoadDamageMap(): ReactElement {
     fetchJobs('init')
   }, [refetchJobs])
 
-  const addComputeResultToLocalStorage = async (job: ComputeJobMetaData) => {
-    const datasetDDO = await getAsset(job.inputDID[0], newCancelToken())
-
-    const signerToUse =
-      job.owner.toLowerCase() === autoWallet?.address.toLowerCase()
-        ? autoWallet
-        : signer
-
-    const jobResult = await ProviderInstance.getComputeResultUrl(
-      datasetDDO.services[0].serviceEndpoint,
-      signerToUse,
-      job.jobId,
-      job.results.findIndex((result) => result.filename === resultFileName)
-    )
-
-    const binary = await getResultBinaryData(jobResult)
-    const resultData = await transformBinaryToRoadDamageResult(binary)
-
-    if (!resultData) return
-
-    const newuseCaseData: RoadDamageUseCaseData = {
-      job,
-      result: resultData
+  const addComputeResultToUseCaseDB = async (job: ComputeJobMetaData) => {
+    if (roadDamageList.find((row) => row.job.jobId === job.jobId)) {
+      toast.info('This compute job result already is part of the map view.')
+      return
     }
 
-    createOrUpdateRoadDamage(newuseCaseData)
+    const dataForSameInputExists =
+      roadDamageList.filter(
+        (row) =>
+          job.inputDID.filter((did) => row.job.inputDID.includes(did))
+            .length === job.inputDID.length
+      ).length > 0
+
+    if (dataForSameInputExists)
+      if (
+        !confirm(
+          'Compute job results for a job with the same dataset inputs already exists. Add anyways?'
+        )
+      )
+        return
+
+    try {
+      const datasetDDO = await getAsset(job.inputDID[0], newCancelToken())
+
+      const signerToUse =
+        job.owner.toLowerCase() === autoWallet?.address.toLowerCase()
+          ? autoWallet
+          : signer
+
+      const jobResult = await ProviderInstance.getComputeResultUrl(
+        datasetDDO.services[0].serviceEndpoint,
+        signerToUse,
+        job.jobId,
+        job.results.findIndex((result) => result.filename === resultFileName)
+      )
+
+      const binary = await getResultBinaryData(jobResult)
+      const resultData = await transformBinaryToRoadDamageResult(binary)
+
+      if (!resultData) return
+
+      const newuseCaseData: RoadDamageUseCaseData = {
+        job,
+        result: resultData
+      }
+
+      await createOrUpdateRoadDamage(newuseCaseData)
+      toast.success('Added a new compute result')
+    } catch (error) {
+      LoggerInstance.error(error)
+      toast.error('Could not add compute result')
+    }
   }
 
   const clearData = async () => {
@@ -165,8 +172,7 @@ export default function RoadDamageMap(): ReactElement {
               {
                 label: 'Add',
                 onClick: (job) => {
-                  console.log('ADD JOB', job.jobId)
-                  addComputeResultToLocalStorage(job)
+                  addComputeResultToUseCaseDB(job)
                 }
               }
             ]}
@@ -184,8 +190,8 @@ export default function RoadDamageMap(): ReactElement {
       {mapData && mapData.length > 0 && (
         <div>
           <span className={styles.info}>
-            Map info calculated from {roadDamageData.length} compute job result
-            {roadDamageData.length > 1 && 's'}.
+            Map info calculated from {mapData.length} compute job result
+            {mapData.length > 1 && 's'}.
           </span>
           <MapWithNoSSR data={mapData} />
         </div>

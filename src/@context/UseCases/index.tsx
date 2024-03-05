@@ -26,8 +26,7 @@ interface UseCasesValue {
   ) => Promise<IndexableType>
   roadDamageList: RoadDamageUseCaseData[]
   updateRoadDamages: (
-    roadDamages: RoadDamageUseCaseData[],
-    keys: number[]
+    roadDamages: RoadDamageUseCaseData[]
   ) => Promise<IndexableType>
   clearRoadDamages: () => Promise<void>
 }
@@ -60,14 +59,12 @@ function UseCasesProvider({ children }: { children: ReactNode }): ReactElement {
   }
 
   const updateRoadDamages = async (
-    roadDamages: RoadDamageUseCaseData[],
-    keys: number[]
+    roadDamages: RoadDamageUseCaseData[]
   ): Promise<IndexableType> => {
-    const updated = await database.roadDamages.bulkPut(roadDamages, keys)
+    const updated = await database.roadDamages.bulkPut(roadDamages)
 
     LoggerInstance.log(`[UseCases]: update roadDamages table`, {
       roadDamages,
-      keys,
       updated
     })
 

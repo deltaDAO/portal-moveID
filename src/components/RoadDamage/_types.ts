@@ -37,7 +37,7 @@ export interface RoadDamageImage {
 /**
  * Used to display data in map view
  */
-export interface RoadDamageMapData {
+export interface RoadDamageResultWithImage {
   image: RoadDamageImage
   roadDamages: RoadDamage[]
 }
