@@ -1,6 +1,6 @@
 import 'leaflet-defaulticon-compatibility'
 
-import { FeatureGroup, LatLngBounds, LatLngTuple, Layer, Marker } from 'leaflet'
+import { FeatureGroup, LatLngBounds, LatLngTuple, Marker } from 'leaflet'
 import { useEffect, useState } from 'react'
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet'
 import { GPSCoordinate, RoadDamageMapData } from '../_types'
@@ -18,13 +18,43 @@ export interface MapProps {
 
 function Map({ data }: MapProps) {
   const [markers, setMarkers] = useState<JSX.Element[]>()
+  const [coords, setCoords] = useState<GPSCoordinate[]>([])
   const [bounds, setBounds] = useState<LatLngBounds>()
   const [center, setCenter] = useState<LatLngTuple>()
   const [currentMapDataEntry, setCurrentMapDataEntry] =
     useState<RoadDamageMapData>()
 
   useEffect(() => {
-    const coords: GPSCoordinate[] = []
+    if (coords.length < 1) return
+
+    const leafletMarkers = coords.map((coord) => new Marker(coord))
+    const featureGroup = new FeatureGroup(leafletMarkers)
+    setBounds(featureGroup.getBounds())
+
+    // Calculate center of map
+    const sum = coords.reduce(
+      (partialSum, c) => {
+        partialSum[0] += c.lat
+        partialSum[1] += c.lng
+        return partialSum
+      },
+      [0, 0]
+    )
+    const centroid = sum.map((el) => {
+      const avg = el / Object.entries(data).length
+      return Number(avg.toFixed(6))
+    })
+
+    setCenter(centroid as LatLngTuple)
+
+    LoggerInstance.log('[RoadDamage]: updated map view bounds', {
+      coords,
+      centroid
+    })
+  }, [coords])
+
+  useEffect(() => {
+    const newCoords: GPSCoordinate[] = []
     const mapMarkers = data.map((entry, index) => {
       if (!entry.roadDamages || entry.roadDamages.length < 1) return undefined
 
@@ -37,11 +67,12 @@ function Map({ data }: MapProps) {
       const lat = Number(roadDamageCoordinates.lat)
       const lng = Number(roadDamageCoordinates.lng)
 
+      newCoords.push({ lat, lng })
+
       return (
         <CircleMarker
           key={`${lat}-${lng}-${index}`}
           center={{ lat, lng }}
-          // pathOptions={{ color: getConfidenceColor(d.confidence) }}
           eventHandlers={{
             click: () => setCurrentMapDataEntry(entry)
           }}
@@ -78,28 +109,12 @@ function Map({ data }: MapProps) {
       )
     })
 
-    const leafletMarkers = coords.map((coord) => new Marker(coord))
-    const featureGroup = new FeatureGroup(leafletMarkers)
-    setBounds(featureGroup.getBounds())
-
+    setCoords(newCoords)
     setMarkers(mapMarkers)
-
-    // Calculate center of map
-    const sum = coords.reduce(
-      (partialSum, c) => {
-        partialSum[0] += c.lat
-        partialSum[1] += c.lng
-        return partialSum
-      },
-      [0, 0]
-    )
-    const centroid = sum.map((el) => {
-      const avg = el / Object.entries(data).length
-      return Number(avg.toFixed(6))
+    LoggerInstance.log('[RoadDamage]: updated map view markers', {
+      count: mapMarkers.length,
+      coords
     })
-    setCenter(centroid as LatLngTuple)
-
-    LoggerInstance.log('[RoadDamage]: updated map view', { coords, centroid })
   }, [data])
 
   return (
