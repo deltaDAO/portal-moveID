@@ -3,8 +3,19 @@ const webpack = require('webpack')
 module.exports = {
   core: { builder: 'webpack5' },
   stories: ['../src/**/*.stories.tsx'],
-  addons: ['@storybook/addon-essentials'],
-  framework: '@storybook/react',
+  addons: [
+    '@storybook/addon-links',
+    '@storybook/addon-essentials',
+    '@storybook/addon-onboarding',
+    '@storybook/addon-interactions'
+  ],
+  framework: {
+    name: '@storybook/nextjs',
+    options: {}
+  },
+  docs: {
+    autodocs: true
+  },
   webpackFinal: async (config) => {
     config.resolve.plugins = [
       ...(config.resolve.plugins || []),

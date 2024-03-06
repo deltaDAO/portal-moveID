@@ -1,7 +1,7 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import Button from '@shared/atoms/Button'
 import Modal, { ModalProps } from '@shared/atoms/Modal'
-import { useArgs } from '@storybook/client-api'
+import { useArgs } from '@storybook/preview-api'
 
 export default {
   title: 'Component/@shared/atoms/Modal',
