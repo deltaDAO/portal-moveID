@@ -114,7 +114,7 @@ export default function RoadDamageMap(): ReactElement {
 
   useEffect(() => {
     fetchJobs()
-  }, [refetchJobs])
+  }, [refetchJobs, chainIds])
 
   const addComputeResultToUseCaseDB = async (job: ComputeJobMetaData) => {
     if (roadDamageList.find((row) => row.job.jobId === job.jobId)) {
