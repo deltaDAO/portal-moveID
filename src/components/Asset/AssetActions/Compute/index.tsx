@@ -64,7 +64,7 @@ import { parseConsumerParameterValues } from '../ConsumerParameters'
 import { useAutomation } from '../../../../@context/Automation/AutomationProvider'
 import { Signer } from 'ethers'
 import { useAccount } from 'wagmi'
-import { ROAD_DAMAGE_ALGO_DID } from '../../../RoadDamage/_constants'
+import { ROAD_DAMAGE_ALGO_DIDS } from '../../../RoadDamage/_constants'
 import Button from '../../../@shared/atoms/Button'
 
 const refreshInterval = 10000 // 10 sec.
@@ -635,13 +635,14 @@ export default function Compute({
         />
       )}
       {/* TODO: remove hardcoded (e.g. move to asset.useCase or similar) */}
-      {accountId && asset?.id === ROAD_DAMAGE_ALGO_DID && (
-        <div className={styles.useCaseLink}>
-          <Button to="/usecases/roaddamage" style="text">
-            Road Damage Visualization
-          </Button>
-        </div>
-      )}
+      {accountId &&
+        Object.values(ROAD_DAMAGE_ALGO_DIDS).includes(asset?.id) && (
+          <div className={styles.useCaseLink}>
+            <Button to="/usecases/roaddamage" style="text">
+              Road Damage Visualization
+            </Button>
+          </div>
+        )}
       {accountId && asset?.accessDetails?.datatoken && (
         <ComputeHistory
           title="Your Compute Jobs"

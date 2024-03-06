@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAccount, useSigner } from 'wagmi'
-import { useAsset } from '../../@context/Asset'
 import { useAutomation } from '../../@context/Automation/AutomationProvider'
 import { useUseCases } from '../../@context/UseCases'
 import { RoadDamageUseCaseData } from '../../@context/UseCases/models/RoadDamage.model'
@@ -13,24 +12,30 @@ import { getComputeJobs } from '../../@utils/compute'
 import Accordion from '../@shared/Accordion'
 import Button from '../@shared/atoms/Button'
 import ComputeJobs from '../Profile/History/ComputeJobs'
-import { ROAD_DAMAGE_RESULT_ZIP } from './_constants'
+import { ROAD_DAMAGE_RESULT_ZIP, ROAD_DAMAGE_ALGO_DIDS } from './_constants'
 import {
   getMapColor,
   getResultBinaryData,
   transformBinaryToRoadDamageResult
 } from './_utils'
 import styles from './index.module.css'
+import { useUserPreferences } from '../../@context/UserPreferences'
 
 export default function RoadDamageMap(): ReactElement {
   const MapWithNoSSR = dynamic(() => import('./Map'), {
     ssr: false
   })
 
+  const { chainIds } = useUserPreferences()
+  const roadDamageAlgoChains: number[] = Object.keys(ROAD_DAMAGE_ALGO_DIDS).map(
+    (key) => Number(key)
+  )
+  const roadDamageAlgoDids: string[] = Object.values(ROAD_DAMAGE_ALGO_DIDS)
+
   const { address: accountId } = useAccount()
   const { data: signer } = useSigner()
   const { autoWallet } = useAutomation()
 
-  const { asset: roadDamageAlgoAsset } = useAsset()
   const { fileName: resultFileName } = ROAD_DAMAGE_RESULT_ZIP
   const [jobs, setJobs] = useState<ComputeJobMetaData[]>([])
   const [refetchJobs, setRefetchJobs] = useState(false)
@@ -57,52 +62,58 @@ export default function RoadDamageMap(): ReactElement {
     setMapData(roadDamageList)
   }, [roadDamageList])
 
-  const fetchJobs = useCallback(
-    async (type: string) => {
-      if (!accountId) {
-        return
-      }
+  const fetchJobs = useCallback(async () => {
+    if (!accountId) {
+      return
+    }
 
-      try {
-        type === 'init' && setIsLoadingJobs(true)
-        const computeJobs = await getComputeJobs(
-          [roadDamageAlgoAsset?.chainId],
-          accountId,
+    try {
+      setIsLoadingJobs(true)
+      // Fetch computeJobs for all selected networks (UserPreferences)
+      const computeJobs = await getComputeJobs(
+        chainIds,
+        accountId,
+        null,
+        newCancelToken()
+      )
+      if (autoWallet) {
+        const autoComputeJobs = await getComputeJobs(
+          chainIds,
+          autoWallet?.address,
           null,
           newCancelToken()
         )
-        if (autoWallet) {
-          const autoComputeJobs = await getComputeJobs(
-            [roadDamageAlgoAsset?.chainId],
-            autoWallet?.address,
-            null,
-            newCancelToken()
-          )
-          autoComputeJobs.computeJobs.forEach((job) => {
-            computeJobs.computeJobs.push(job)
-          })
-        }
-
-        setJobs(
-          computeJobs.computeJobs.filter(
-            (job) =>
-              job.algoDID === roadDamageAlgoAsset?.id &&
-              job.status === 70 &&
-              job.results.filter((result) => result.filename === resultFileName)
-                .length > 0
-          )
-        )
-        setIsLoadingJobs(!computeJobs.isLoaded)
-      } catch (error) {
-        LoggerInstance.error(error.message)
-        setIsLoadingJobs(false)
+        autoComputeJobs.computeJobs.forEach((job) => {
+          computeJobs.computeJobs.push(job)
+        })
       }
-    },
-    [accountId, roadDamageAlgoAsset, autoWallet, newCancelToken]
-  )
+
+      setJobs(
+        // Filter computeJobs for dids configured in _constants
+        computeJobs.computeJobs.filter(
+          (job) =>
+            roadDamageAlgoDids.includes(job.algoDID) &&
+            job.status === 70 &&
+            job.results.filter((result) => result.filename === resultFileName)
+              .length > 0
+        )
+      )
+      setIsLoadingJobs(!computeJobs.isLoaded)
+    } catch (error) {
+      LoggerInstance.error(error.message)
+      setIsLoadingJobs(false)
+    }
+  }, [
+    chainIds,
+    roadDamageAlgoChains,
+    roadDamageAlgoDids,
+    accountId,
+    autoWallet,
+    newCancelToken
+  ])
 
   useEffect(() => {
-    fetchJobs('init')
+    fetchJobs()
   }, [refetchJobs])
 
   const addComputeResultToUseCaseDB = async (job: ComputeJobMetaData) => {
@@ -233,9 +244,6 @@ export default function RoadDamageMap(): ReactElement {
 
           <div className={styles.actions}>
             <Button onClick={() => clearData()}>Clear Data</Button>
-            <Button onClick={() => fetchJobs('refresh')} style="text">
-              Refetch Compute Jobs
-            </Button>
           </div>
         </Accordion>
       </div>
