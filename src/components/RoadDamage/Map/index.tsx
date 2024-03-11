@@ -77,7 +77,7 @@ function Map({ data }: MapProps) {
 
           return (
             <CircleMarker
-              key={`${lat}-${lng}-${index}`}
+              key={`${row.id}-${lat}-${lng}-${index}`}
               center={{ lat, lng }}
               eventHandlers={{
                 click: () => setCurrentMapDataEntry(entry)
