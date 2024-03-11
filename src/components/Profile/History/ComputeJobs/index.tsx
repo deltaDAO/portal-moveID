@@ -1,15 +1,14 @@
-import { ReactElement, useEffect, useState } from 'react'
-import Time from '@shared/atoms/Time'
-import Table, { TableOceanColumn } from '@shared/atoms/Table'
-import Button from '@shared/atoms/Button'
-import Details from './Details'
-import Refresh from '@images/refresh.svg'
 import { useUserPreferences } from '@context/UserPreferences'
-import NetworkName from '@shared/NetworkName'
-import styles from './index.module.css'
+import Refresh from '@images/refresh.svg'
 import AssetListTitle from '@shared/AssetListTitle'
+import NetworkName from '@shared/NetworkName'
+import Button from '@shared/atoms/Button'
+import Table, { TableOceanColumn } from '@shared/atoms/Table'
+import Time from '@shared/atoms/Time'
+import { ReactElement, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
-import InputElement from '../../../@shared/FormInput/InputElement'
+import Details from './Details'
+import styles from './index.module.css'
 
 export function Status({ children }: { children: string }): ReactElement {
   return <div className={styles.status}>{children}</div>
@@ -115,7 +114,8 @@ export default function ComputeJobs({
       <Table
         columns={
           minimal
-            ? [columns[5], actionsColumn, columns[4]]
+            ? // for minimal view, we only want 'Status', custom columns and 'Finished'
+              [columns[5], actionsColumn, columns[4]]
             : [...columns, actionsColumn]
         }
         data={jobs}
