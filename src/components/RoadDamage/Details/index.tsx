@@ -18,7 +18,7 @@ export default function RoadDamageDetails({
       <div className={styles.image}>
         <img
           className={styles.mapImage}
-          src={`data:image/${image.type || 'jpg'};base64,${image.data}`}
+          src={`data:image/${image.type || 'jpeg'};base64,${image.data}`}
           alt={image.name}
         />
       </div>
