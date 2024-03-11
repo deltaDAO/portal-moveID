@@ -1,7 +1,7 @@
 import Dexie, { IndexableType, Table } from 'dexie'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ReactElement, ReactNode, createContext, useContext } from 'react'
-import { DATABASE_NAME } from './_contants'
+import { DATABASE_NAME, DATABASE_VERSION } from './_contants'
 import {
   ROAD_DAMAGE_TABLE,
   RoadDamageUseCaseData
@@ -12,7 +12,7 @@ export class UseCaseDB extends Dexie {
   roadDamages!: Table<RoadDamageUseCaseData>
   constructor() {
     super(DATABASE_NAME)
-    this.version(1).stores({
+    this.version(DATABASE_VERSION).stores({
       ...ROAD_DAMAGE_TABLE
     })
   }
