@@ -42,11 +42,7 @@ export async function transformBinaryToRoadDamageResult(
   let zip: JSZip
   let detectionsJSON: string
 
-  const {
-    detectionsFileName,
-    imagesFolderName
-    // metadataFileName
-  } = ROAD_DAMAGE_RESULT_ZIP
+  const { detectionsFileName, imagesFolderName } = ROAD_DAMAGE_RESULT_ZIP
 
   try {
     zip = await JSZip.loadAsync(binary)

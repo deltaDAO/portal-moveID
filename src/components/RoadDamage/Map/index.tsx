@@ -62,8 +62,6 @@ function Map({ data }: MapProps) {
           if (!entry.roadDamages || entry.roadDamages.length < 1)
             return undefined
 
-          // const color = getRandomMapColor(lastRow.job.inputDID.join())
-
           const roadDamageCoordinates = entry.roadDamages.find(
             (damage) => damage.gpsCoordinates?.lat && damage.gpsCoordinates?.lng
           ).gpsCoordinates
