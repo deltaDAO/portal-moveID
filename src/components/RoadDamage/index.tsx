@@ -125,8 +125,8 @@ export default function RoadDamageMap(): ReactElement {
     const dataForSameInputExists =
       roadDamageList.filter(
         (row) =>
-          job.inputDID.filter((did) => row.job.inputDID.includes(did))
-            .length === job.inputDID.length
+          job.inputDID?.filter((did) => row.job.inputDID?.includes(did))
+            .length === job.inputDID?.length
       ).length > 0
 
     if (dataForSameInputExists)
