@@ -114,7 +114,7 @@ export default function ComputeJobs({
       <Table
         columns={
           minimal
-            ? // for minimal view, we only want 'Status', custom columns and 'Finished'
+            ? // for minimal view, we only want 'Status', actions and 'Finished'
               [columns[5], actionsColumn, columns[4]]
             : [...columns, actionsColumn]
         }
