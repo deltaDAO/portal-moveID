@@ -40,6 +40,18 @@ function UseCasesProvider({ children }: { children: ReactNode }): ReactElement {
   const createOrUpdateRoadDamage = async (
     roadDamage: RoadDamageUseCaseData
   ) => {
+    if (
+      !roadDamage.job ||
+      !roadDamage.job.jobId ||
+      !roadDamage.result ||
+      roadDamage.result.length < 1
+    ) {
+      LoggerInstance.error(
+        `[UseCases] cannot insert without job or result data!`
+      )
+      return
+    }
+
     const exists = roadDamageList.find(
       (row) => roadDamage.job.jobId === row.job.jobId
     )
