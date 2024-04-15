@@ -49,6 +49,11 @@ const defaultActionsColumn: TableOceanColumn<ComputeJobMetaData> = {
   selector: (row) => <Details job={row} />
 }
 
+export type GetCustomActions = (job: ComputeJobMetaData) => {
+  label: ReactElement
+  onClick: (job: ComputeJobMetaData) => void
+}[]
+
 export default function ComputeJobs({
   minimal,
   jobs,
