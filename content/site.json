@@ -3,7 +3,7 @@
   "siteTagline": "moveID aims to develop a decentralized digital mobility identity infrastructure for Europe.",
   "siteUrl": "https://portal.moveid.eu/",
   "siteImage": "/share.png",
-  "copyright": "All Rights Reserved. Powered by [Ocean Protocol](https://oceanprotocol.com). Built by [deltaDAO](https://delta-dao.com).",
+  "copyright": "All Rights Reserved. Powered by [Gaia-X](https://gaia-x.eu/) and [Ocean Enterprise](https://www.oceanenterprise.io/). Built by [deltaDAO](https://delta-dao.com).",
   "menu": [
     {
       "name": "Catalogue",
@@ -36,15 +36,23 @@
         {
           "name": "EuProGigant",
           "link": "https://portal.euprogigant.io/",
-          "description": "EuProGigant is the first funded binational industrial project with the practical implementation of the Gaia-X principles.",
+          "description": "Gaia-X Lighthouse EuProGigant is the first funded binational industrial project with the practical implementation of the Gaia-X principles.",
           "image": "euprogigant-logo.webp",
           "category": "manufacturing",
           "isLive": true
         },
         {
-          "name": "Cooperants",
-          "link": "https://cooperants.pontus-x.eu/",
-          "description": "The world's only collaborative alliance in the Aeronautics and space sector that solves pressing digital collaboration problems by creating a common data space.",
+          "name": "GX4FM moveID",
+          "link": "https://portal.moveid.eu/",
+          "description": "Gaia-X Lighthouse Gaia-X 4 Future Mobility aims to develop a decentralized digital mobility identity infrastructure for Europe.",
+          "image": "gx4fm_moveid.webp",
+          "category": "mobility",
+          "isLive": true
+        },
+        {
+          "name": "COOPERANTS",
+          "link": "https://federator.cooperants.info/marketplace",
+          "description": "Gaia-X Lighthouse COOPERANTS is the collaborative alliance in the Aeronautics and space sector that solves pressing digital collaboration problems by creating a common data space.",
           "image": "cooperants-logo.webp",
           "category": "manufacturing",
           "isLive": true
@@ -90,14 +98,6 @@
           "isLive": true
         },
         {
-          "name": "EnergySHR",
-          "link": "https://www.energyshr.nl/",
-          "description": "A platform for sharing (SHR) datasets and AI algorithms that contribute to solving challenges of the energy transition.",
-          "image": "energy-shr-logo.webp",
-          "category": "energy",
-          "isLive": true
-        },
-        {
           "name": "UdL Research Data Space",
           "link": "https://dataspace.angliru.udl.cat/",
           "description": "An open research platform following the FAIR guiding principles of findability, accessibility, interoperability and reusability, while guaranteeing data sovereignty.",
@@ -106,20 +106,28 @@
           "isLive": true
         },
         {
-          "name": "Under Construction: ACCURATE",
-          "link": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/how-to-participate/org-details/999999999/project/101138269/program/43108390/details",
-          "description": "Gaia-X Lighthouse ACCURATE aims to boost the competitiveness of European manufacturing companies with DSS and Manufacturing as a Service frameworks. ",
-          "image": "accurate-logo.webp",
-          "category": "manufacturing",
-          "isLive": false
+          "name": "Agrifood TEF",
+          "link": "http://dataspace.agrifoodtef.eu/",
+          "description": "The European Testing and Experimentation Facilities for Agrifood Innovation.",
+          "image": "agrifoodTEF.webp",
+          "category": "agriculture",
+          "isLive": true
         },
         {
-          "name": "deltaDAO AI marketplace",
-          "link": "https://market.delta-dao.com/",
-          "description": "With deltaDAO's AI Marketplace, you have the freedom to decide how your AI service is offered. By keeping your AI private, you retain full control and do not disclose your valuable IP.",
-          "image": "deltadao-logo.webp",
-          "category": "AI",
-          "isLive": false
+          "name": "Polish Agriculture Data Space",
+          "link": "https://dataspaces.psnc.pl/",
+          "description": "An open data space platform for sharing and marketing agri-related datasets guaranteeing data sovereignty.",
+          "image": "PSNC.webp",
+          "category": "agriculture",
+          "isLive": true
+        },
+        {
+          "name": "EnergySHR",
+          "link": "https://www.energyshr.nl/",
+          "description": "A platform for sharing (SHR) datasets and AI algorithms that contribute to solving challenges of the energy transition.",
+          "image": "energy-shr-logo.webp",
+          "category": "energy",
+          "isLive": true
         }
       ]
     }
