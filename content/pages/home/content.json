@@ -13,6 +13,11 @@
       "title": "About",
       "body": "We are part of the [Gaia-X 4 Future Mobility](https://www.gaia-x4futuremobility.dlr.de) project family consisting of five consortia. The Gaix-X 4 Future Mobility project family is located in the mobility domain of the [German Gaia-X Hub](https://www.data-infrastructure.eu/GAIAX/Navigation/EN/Home/home.html). The common focus of the projects in the family is on the [Gaia-X](https://gaia-x.eu)-based implementation of future mobility applications with high product proximity, for which data-based networking with manufacturers, suppliers, service providers, and users is essential.\n\nAccordingly, a wide variety of partners from all application, research, and topic areas of mobility and, in particular, information and communication technologies are involved here.\n\nIn total, around 80 partners from industry and science are involved in this joint initiative that is coordinated by the [DLR Institute for AI Safety and Security](https://www.dlr.de/ki/en/desktopdefault.aspx/tabid-17270/27361_read-69839).",
       "image": "/images/moveID_logo.jpg"
+    },
+    {
+      "title": "Gaia-X Integration",
+      "body": "The Pontus-X ecosystem provided a direct integration with the Gaia-X Digital Clearing Houses (GXDCH). We fast track your onboarding to X-ecosystems and to offering your services in Gaia-X‍ ecosystems. The GXDCH safeguard the distributed, decentralised ways of running the Gaia-X compliance.",
+      "image": "/images/gxdch_powered.webp"
     }
   ],
   "footer": {
