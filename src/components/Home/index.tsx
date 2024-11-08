@@ -38,6 +38,8 @@ export default function HomePage(): ReactElement {
   const [queryRecent, setQueryRecent] = useState<SearchQuery>()
   const [queryMostSales, setQueryMostSales] = useState<SearchQuery>()
 
+  const { showOnboardingModule } = useUserPreferences()
+
   useEffect(() => {
     const baseParams = {
       chainIds,

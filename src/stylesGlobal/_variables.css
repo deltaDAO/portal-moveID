@@ -47,6 +47,7 @@
   --menu-link-font-weight-active: var(--font-weight-bold);
   --menu-caret-size: var(--font-size-small);
   --menu-caret-fill-color: var(--color-primary);
+  --menu-caret-active-fill-color: var(--color-primary);
   --menu-network-badge-font-color: var(--brand-white);
 
   /* Footer */
