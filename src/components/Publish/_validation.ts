@@ -40,14 +40,17 @@ const validationMetadata = {
     .required('Required')
     .isTrue('Please agree to the Terms and Conditions.'),
   usesConsumerParameters: Yup.boolean(),
-  consumerParameters: Yup.array().when('usesConsumerParameters', {
-    is: true,
-    then: Yup.array()
-      .of(Yup.object().shape(validationConsumerParameters))
-      .required('Required'),
-    otherwise: Yup.array()
-      .nullable()
-      .transform((value) => value || null)
+  consumerParameters: Yup.array().when('type', {
+    is: 'algorithm',
+    then: Yup.array().when('usesConsumerParameters', {
+      is: true,
+      then: Yup.array()
+        .of(Yup.object().shape(validationConsumerParameters))
+        .required('Required'),
+      otherwise: Yup.array()
+        .nullable()
+        .transform((value) => value || null)
+    })
   })
 }
 
@@ -56,7 +59,11 @@ const validationService = {
     .of(
       Yup.object().shape({
         url: testLinks(),
-        valid: Yup.boolean().isTrue().required('File must be valid.')
+        valid: Yup.boolean().when('type', {
+          is: 'saas',
+          then: Yup.boolean().notRequired(),
+          otherwise: Yup.boolean().isTrue().required('File must be valid.')
+        })
       })
     )
     .min(1, `At least one file is required.`)
@@ -74,7 +81,6 @@ const validationService = {
     name: Yup.string(),
     symbol: Yup.string()
   }),
-  timeout: Yup.string().required('Required'),
   access: Yup.string()
     .matches(/compute|access/g)
     .required('Required'),
@@ -92,7 +98,11 @@ const validationService = {
     otherwise: Yup.array()
       .nullable()
       .transform((value) => value || null)
-  }),
+  })
+}
+
+const validationPolicies = {
+  timeout: Yup.string().required('Required'),
   allow: Yup.array().of(Yup.string()).nullable(),
   deny: Yup.array().of(Yup.string()).nullable()
 }
@@ -128,5 +138,6 @@ export const validationSchema: Yup.SchemaOf<any> = Yup.object().shape({
   }),
   metadata: Yup.object().shape(validationMetadata),
   services: Yup.array().of(Yup.object().shape(validationService)),
+  policies: Yup.object().shape(validationPolicies),
   pricing: Yup.object().shape(validationPricing)
 })

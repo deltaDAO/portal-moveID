@@ -46,6 +46,10 @@ export interface AppConfig {
       [chainId: number]: string
     }
   }
+  faucet: {
+    enabled: string
+    baseUri: string
+  }
 }
 export interface SiteContent {
   siteTitle: string
