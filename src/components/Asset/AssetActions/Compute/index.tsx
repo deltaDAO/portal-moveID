@@ -115,7 +115,10 @@ export default function Compute({
   const [computeEnvs, setComputeEnvs] = useState<ComputeEnvironment[]>()
   const [selectedComputeEnv, setSelectedComputeEnv] =
     useState<ComputeEnvironment>()
-  const [termsAndConditions, setTermsAndConditions] = useState<boolean>(false)
+  const [assetTermsAndConditions, setAssetTermsAndConditions] =
+    useState<boolean>(false)
+  const [portalTermsAndConditions, setPortalTermsAndConditions] =
+    useState<boolean>(false)
   const [initializedProviderResponse, setInitializedProviderResponse] =
     useState<ProviderComputeInitializeResults>()
   const [providerFeeAmount, setProviderFeeAmount] = useState<string>('0')
@@ -498,7 +501,12 @@ export default function Compute({
   }
 
   const onSubmit = async (values: ComputeDatasetForm) => {
-    if (!values.algorithm || !values.computeEnv || !values.termsAndConditions)
+    if (
+      !values.algorithm ||
+      !values.computeEnv ||
+      !values.assetTermsAndConditions ||
+      !values.portalTermsAndConditions
+    )
       return
 
     const userCustomParameters = {
@@ -566,7 +574,8 @@ export default function Compute({
             asset,
             selectedAlgorithmAsset,
             selectedComputeEnv,
-            termsAndConditions
+            assetTermsAndConditions,
+            portalTermsAndConditions
           )}
           validateOnMount
           validationSchema={getComputeValidationSchema(
@@ -611,7 +620,8 @@ export default function Compute({
             )}
             computeEnvs={computeEnvs}
             setSelectedComputeEnv={setSelectedComputeEnv}
-            setTermsAndConditions={setTermsAndConditions}
+            setAssetTermsAndConditions={setAssetTermsAndConditions}
+            setPortalTermsAndConditions={setPortalTermsAndConditions}
             // lazy comment when removing pricingStepText
             stepText={computeStatusText}
             isConsumable={isConsumablePrice}
