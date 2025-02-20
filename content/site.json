@@ -26,6 +26,7 @@
       "name": "Faucet",
       "link": "/faucet"
     },
+
     {
       "name": "Log",
       "link": "https://explorer.pontus-x.eu/"
@@ -70,6 +71,14 @@
           "isLive": true
         },
         {
+          "name": "beebucket",
+          "link": "https://daseen.pontus-x.eu/",
+          "description": "The beebucket portal features access to the Extended Dataset Profile Service (EDPS) and Dataset Search Engine (daseen).",
+          "image": "beebucket.webp",
+          "category": "AI",
+          "isLive": true
+        },
+        {
           "name": "FIWARE",
           "link": "https://fiware-marketplace-a4eqd.ondigitalocean.app/",
           "description": "A curated framework of Open Source Platform components to accelerate the development of Smart Solutions.",
@@ -110,10 +119,10 @@
           "isLive": true
         },
         {
-          "name": "UdL Research Data Space",
-          "link": "https://dataspace.angliru.udl.cat/",
-          "description": "An open research platform following the FAIR guiding principles of findability, accessibility, interoperability and reusability, while guaranteeing data sovereignty.",
-          "image": "udl-logo.webp",
+          "name": "AgrospAI",
+          "link": "https://agrospai.udl.cat/",
+          "description": "Agri-food Data Space Demonstrator for Sovereign Data-Sharing and Artificial Intelligence Services.",
+          "image": "agrospai-logo.webp",
           "category": "agriculture",
           "isLive": true
         },
