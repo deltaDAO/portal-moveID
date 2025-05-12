@@ -122,7 +122,7 @@ export default function Compute({
   const [initializedProviderResponse, setInitializedProviderResponse] =
     useState<ProviderComputeInitializeResults>()
   const [providerFeeAmount, setProviderFeeAmount] = useState<string>('0')
-  const [providerFeesSymbol, setProviderFeesSymbol] = useState<string>('OCEAN')
+  const [providerFeesSymbol, setProviderFeesSymbol] = useState<string>('EUROe')
   const [computeValidUntil, setComputeValidUntil] = useState<string>('0')
   const [datasetOrderPriceAndFees, setDatasetOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
@@ -601,13 +601,10 @@ export default function Compute({
             hasPreviousOrderSelectedComputeAsset={!!validAlgorithmOrderTx}
             hasDatatokenSelectedComputeAsset={hasAlgoAssetDatatoken}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              asset?.accessDetails?.baseToken?.symbol ||
-              (asset?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={asset?.accessDetails?.baseToken?.symbol || 'EUROe'}
             algorithmSymbol={
               selectedAlgorithmAsset?.accessDetails?.baseToken?.symbol ||
-              (selectedAlgorithmAsset?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
+              'EUROe'
             }
             providerFeesSymbol={providerFeesSymbol}
             dtSymbolSelectedComputeAsset={
@@ -631,6 +628,7 @@ export default function Compute({
             providerFeeAmount={providerFeeAmount}
             validUntil={computeValidUntil}
             retry={retry}
+            license={asset?.metadata?.license}
           />
         </Formik>
       )}
