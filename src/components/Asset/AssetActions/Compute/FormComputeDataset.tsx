@@ -55,7 +55,8 @@ export default function FormStartCompute({
   algoOrderPriceAndFees,
   providerFeeAmount,
   validUntil,
-  retry
+  retry,
+  license
 }: {
   algorithms: AssetSelectionAsset[]
   ddoListAlgorithms: Asset[]
@@ -92,6 +93,7 @@ export default function FormStartCompute({
   providerFeeAmount?: string
   validUntil?: string
   retry: boolean
+  license: string
 }): ReactElement {
   const { address: accountId, isConnected } = useAccount()
   const { balance } = useBalance()
@@ -406,7 +408,7 @@ export default function FormStartCompute({
       />
       <TermsAndConditionsCheckbox
         {...content.form.assetTermsAndConditions}
-        licenses={[asset?.metadata?.license]}
+        licenses={[license]}
         disabled={isLoading}
         onChange={() =>
           setAssetTermsAndConditions(
