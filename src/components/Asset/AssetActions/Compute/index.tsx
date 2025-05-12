@@ -115,11 +115,14 @@ export default function Compute({
   const [computeEnvs, setComputeEnvs] = useState<ComputeEnvironment[]>()
   const [selectedComputeEnv, setSelectedComputeEnv] =
     useState<ComputeEnvironment>()
-  const [termsAndConditions, setTermsAndConditions] = useState<boolean>(false)
+  const [assetTermsAndConditions, setAssetTermsAndConditions] =
+    useState<boolean>(false)
+  const [portalTermsAndConditions, setPortalTermsAndConditions] =
+    useState<boolean>(false)
   const [initializedProviderResponse, setInitializedProviderResponse] =
     useState<ProviderComputeInitializeResults>()
   const [providerFeeAmount, setProviderFeeAmount] = useState<string>('0')
-  const [providerFeesSymbol, setProviderFeesSymbol] = useState<string>('OCEAN')
+  const [providerFeesSymbol, setProviderFeesSymbol] = useState<string>('EUROe')
   const [computeValidUntil, setComputeValidUntil] = useState<string>('0')
   const [datasetOrderPriceAndFees, setDatasetOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
@@ -498,7 +501,12 @@ export default function Compute({
   }
 
   const onSubmit = async (values: ComputeDatasetForm) => {
-    if (!values.algorithm || !values.computeEnv || !values.termsAndConditions)
+    if (
+      !values.algorithm ||
+      !values.computeEnv ||
+      !values.assetTermsAndConditions ||
+      !values.portalTermsAndConditions
+    )
       return
 
     const userCustomParameters = {
@@ -566,7 +574,8 @@ export default function Compute({
             asset,
             selectedAlgorithmAsset,
             selectedComputeEnv,
-            termsAndConditions
+            assetTermsAndConditions,
+            portalTermsAndConditions
           )}
           validateOnMount
           validationSchema={getComputeValidationSchema(
@@ -592,13 +601,10 @@ export default function Compute({
             hasPreviousOrderSelectedComputeAsset={!!validAlgorithmOrderTx}
             hasDatatokenSelectedComputeAsset={hasAlgoAssetDatatoken}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              asset?.accessDetails?.baseToken?.symbol ||
-              (asset?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={asset?.accessDetails?.baseToken?.symbol || 'EUROe'}
             algorithmSymbol={
               selectedAlgorithmAsset?.accessDetails?.baseToken?.symbol ||
-              (selectedAlgorithmAsset?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
+              'EUROe'
             }
             providerFeesSymbol={providerFeesSymbol}
             dtSymbolSelectedComputeAsset={
@@ -611,7 +617,8 @@ export default function Compute({
             )}
             computeEnvs={computeEnvs}
             setSelectedComputeEnv={setSelectedComputeEnv}
-            setTermsAndConditions={setTermsAndConditions}
+            setAssetTermsAndConditions={setAssetTermsAndConditions}
+            setPortalTermsAndConditions={setPortalTermsAndConditions}
             // lazy comment when removing pricingStepText
             stepText={computeStatusText}
             isConsumable={isConsumablePrice}
@@ -621,6 +628,7 @@ export default function Compute({
             providerFeeAmount={providerFeeAmount}
             validUntil={computeValidUntil}
             retry={retry}
+            license={asset?.metadata?.license}
           />
         </Formik>
       )}

@@ -32,9 +32,10 @@ import {
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
   customProviderUrl,
-  defaultAccessTerms,
+  defaultTermsAndConditionsUrl,
   complianceApiVersion,
-  complianceUri
+  complianceUri,
+  allowedGaiaXRegistryDomains
 } from '../../../app.config'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
@@ -194,14 +195,13 @@ export async function transformPublishFormToDdo(
     description,
     tags: transformTags(tags),
     author,
-    license:
-      values.metadata.license || 'https://market.oceanprotocol.com/terms',
+    license: values.metadata.license || defaultTermsAndConditionsUrl,
     links: linksTransformed,
     additionalInformation: {
       termsAndConditions,
       gaiaXInformation: {
         termsAndConditions: [
-          { url: accessTermsUrlTransformed || defaultAccessTerms }
+          { url: accessTermsUrlTransformed || defaultTermsAndConditionsUrl }
         ],
         ...(type === 'dataset' && {
           containsPII: gaiaXInformation.containsPII,
@@ -413,15 +413,12 @@ export async function createTokensAndPricing(
 export function getComplianceApiVersion(context?: string[]): string {
   const latest = complianceApiVersion
 
-  const allowedRegistryDomains = [
-    'https://registry.gaia-x.eu/v2206',
-    'https://registry.lab.gaia-x.eu/v2206'
-  ]
   if (
     !context ||
     !context.length ||
     context.some(
-      (e) => allowedRegistryDomains.findIndex((x) => e.startsWith(x)) !== -1
+      (e) =>
+        allowedGaiaXRegistryDomains.findIndex((x) => e.startsWith(x)) !== -1
     )
   )
     return latest
@@ -480,11 +477,12 @@ export async function storeRawServiceSD(signedSD: {
 
 export async function verifyRawServiceCredential(
   rawServiceCredential: string,
-  did?: string
+  assetDid?: string
 ): Promise<{
   verified: boolean
   complianceApiVersion?: string
   idMatch?: boolean
+  isIdMatchVerifiable?: string
   responseBody?: any
 }> {
   if (!rawServiceCredential) return { verified: false }
@@ -496,6 +494,10 @@ export async function verifyRawServiceCredential(
   // )
 
   const baseUrl = `${complianceUri}/v1/api/credential-offers`
+  const verifiedAndComplianceApiVersion = {
+    verified: true,
+    complianceApiVersion
+  }
 
   try {
     const response = await axios.post(baseUrl, parsedServiceCredential)
@@ -506,16 +508,53 @@ export async function verifyRawServiceCredential(
       }
     }
     if (response?.status === 201) {
-      const serviceOffering = parsedServiceCredential.verifiableCredential.find(
-        (credential) =>
-          credential?.credentialSubject?.type === 'gx:ServiceOffering'
-      )
-      const credentialId = serviceOffering?.credentialSubject?.id
-
-      return {
-        verified: true,
-        complianceApiVersion,
-        idMatch: did && did?.toLowerCase() === credentialId?.toLowerCase()
+      const serviceOfferings =
+        parsedServiceCredential.verifiableCredential.filter(
+          (credential) =>
+            credential?.credentialSubject?.type === 'gx:ServiceOffering'
+        )
+      if (serviceOfferings.length === 1) {
+        const credentialSubject = serviceOfferings[0]?.credentialSubject
+        return {
+          ...verifiedAndComplianceApiVersion,
+          idMatch: assetDid
+            ? assetDid?.toLowerCase() === credentialSubject?.id?.toLowerCase()
+            : false
+        }
+      } else {
+        const dependsOnIds = serviceOfferings
+          .filter((service) => service?.credentialSubject?.['gx:dependsOn'])
+          .flatMap((service) => service?.credentialSubject?.['gx:dependsOn'])
+          .map((dependsOn) => dependsOn?.id)
+        const rootService = serviceOfferings
+          .filter(
+            (service) => !dependsOnIds.includes(service?.credentialSubject?.id)
+          )
+          .map((service) => service?.credentialSubject?.id)
+        if (rootService.length > 1) {
+          return {
+            ...verifiedAndComplianceApiVersion,
+            idMatch: assetDid
+              ? rootService?.includes(assetDid) ||
+                rootService?.includes(assetDid?.toLowerCase())
+              : false,
+            isIdMatchVerifiable: 'Too many root services'
+          }
+        } else if (rootService.length < 1) {
+          return {
+            ...verifiedAndComplianceApiVersion,
+            idMatch: false,
+            isIdMatchVerifiable: 'No root service found'
+          }
+        } else {
+          return {
+            ...verifiedAndComplianceApiVersion,
+            idMatch: assetDid
+              ? rootService?.includes(assetDid) ||
+                rootService?.includes(assetDid?.toLowerCase())
+              : false
+          }
+        }
       }
     }
 
