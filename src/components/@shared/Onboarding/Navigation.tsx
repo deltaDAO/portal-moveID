@@ -53,6 +53,7 @@ export default function Navigation({
       <Button
         style="text"
         className={cx({
+          previousButton: true,
           hidden: currentStep === 0
         })}
         onClick={handlePreviousStep}
