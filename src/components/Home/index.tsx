@@ -11,6 +11,7 @@ import ProjectPartners from './ProjectPartners/ProjectPartners'
 import Container from '@components/@shared/atoms/Container'
 import FundedBy from './FundedBy/FundedBy'
 import PoweredBy from './PoweredBy'
+import OnboardingSection from '@components/@shared/Onboarding'
 
 interface FeaturedSection {
   title: string
@@ -83,6 +84,7 @@ export default function HomePage(): ReactElement {
   return (
     <>
       <Container>
+        {showOnboardingModule && <OnboardingSection />}
         {hasFeaturedAssets() && (
           <>
             {queryFeatured.map((section, i) => (
