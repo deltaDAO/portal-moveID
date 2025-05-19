@@ -13,6 +13,14 @@
   transition: none;
 }
 
+.previousButton {
+  color: var(--color-primary);
+}
+
+.previousButton:hover {
+  color: var(--color-primary);
+}
+
 @media screen and (min-width: 35rem) {
   .navigation {
     flex-direction: row;
