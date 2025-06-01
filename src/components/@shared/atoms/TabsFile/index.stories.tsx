@@ -3,7 +3,7 @@ import { ComponentStory, ComponentMeta } from '@storybook/react'
 import Tabs, { TabsProps } from '@shared/atoms/Tabs'
 
 export default {
-  title: 'Component/@shared/atoms/Tabs',
+  title: 'Component/@shared/atoms/TabsFile',
   component: Tabs
 } as ComponentMeta<typeof Tabs>
 
