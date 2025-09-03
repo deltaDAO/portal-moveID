@@ -148,7 +148,7 @@
     "url": "https://github.com/deltaDAO/portal-moveID"
   },
   "engines": {
-    "node": "18"
+    "node": "22"
   },
   "browserslist": [
     ">0.2%",
